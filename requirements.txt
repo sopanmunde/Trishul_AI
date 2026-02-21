@@ -1,0 +1,9 @@
+langchain
+flask
+sentence-transformers
+langchain-pinecone
+langchain-gemini
+pypdf
+python-dotenv
+langchain-core
+langchain-community
