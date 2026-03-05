@@ -7,3 +7,6 @@ pypdf
 python-dotenv
 langchain-core
 langchain-community
+fastapi
+uvicorn[standard]
+pydantic

@@ -5,7 +5,7 @@ from src.helper import load_pdf_files, filter_to_minimal_docs, text_split, downl
 from pinecone import Pinecone
 from pinecone import ServerlessSpec
 
-load_dotenv()
+load_dotenv(dotenv_path='.env')
 
 PINECONE_API_KEY = os.getenv("PINECONE_API_KEY")
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")

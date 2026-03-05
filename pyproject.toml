@@ -16,4 +16,7 @@ dependencies = [
     "python-dotenv>=1.2.1",
     "sentence-transformers>=5.2.3",
     "unstructured[pdf]>=0.20.8",
+    "fastapi>=0.115.0",
+    "uvicorn[standard]>=0.32.0",
+    "pydantic>=2.9.0",
 ]
