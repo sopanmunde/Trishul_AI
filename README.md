@@ -119,8 +119,8 @@ Response Sent to User
 ### 1️⃣ Clone Repository
 
 ```bash
-git clone https://github.com/your-username/trishul-ai-medical-chatbot.git
-cd trishul-ai-medical-chatbot
+git clone https://github.com/sopanmunde/Trishul_AI.git
+cd trishul_ai
 
 ```
 
