@@ -32,7 +32,7 @@ This project aims to provide **accurate, context-aware, and safe responses** usi
 
 # Chatbot UI
 
-![img](frontend\public\chatbot-ui.png)
+![img](frontend/public/chatbot-ui.png)
 
 
 ## 🛠️ Tech Stack
