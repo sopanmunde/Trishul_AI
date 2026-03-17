@@ -146,14 +146,9 @@ Backend run at:
 
        http://127.0.0.1:8000
 
-### Frontend Setup
-```bash
-cd ../frontend/nextjs-app
-npm install
-npm run dev
-```
-Frontend Run at: 
-        http://localhost:3000
+### Frontend
+
+👉👉 Backend completed; frontend under active development using Next.js
 
 
 
