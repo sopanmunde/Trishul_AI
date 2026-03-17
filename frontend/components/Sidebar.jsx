@@ -233,7 +233,7 @@ export default function Sidebar({
                 <div className="grid h-8 w-8 place-items-center rounded-xl bg-gradient-to-br from-blue-500 to-indigo-500 text-white shadow-sm dark:from-zinc-200 dark:to-zinc-300 dark:text-zinc-900">
                   <Asterisk className="h-4 w-4" />
                 </div>
-                <div className="text-sm font-semibold tracking-tight">AI Assistant</div>
+                <div className="text-sm font-semibold tracking-tight">Trishul AI</div>
               </div>
               <div className="ml-auto flex items-center gap-1">
                 <button
@@ -410,10 +410,10 @@ export default function Sidebar({
               </div>
               <div className="mt-2 flex items-center gap-2 rounded-xl bg-zinc-50 p-2 dark:bg-zinc-800/60">
                 <div className="grid h-8 w-8 place-items-center rounded-full bg-zinc-900 text-xs font-bold text-white dark:bg-white dark:text-zinc-900">
-                  JD
+                  SM
                 </div>
                 <div className="min-w-0">
-                  <div className="truncate text-sm font-medium">John Doe</div>
+                  <div className="truncate text-sm font-medium">Sopan Munde</div>
                   <div className="truncate text-xs text-zinc-500 dark:text-zinc-400">Pro workspace</div>
                 </div>
               </div>

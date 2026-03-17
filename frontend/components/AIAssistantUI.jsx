@@ -177,33 +177,69 @@ export default function AIAssistantUI() {
     setThinkingConvId(convId)
 
     const currentConvId = convId
-    setTimeout(() => {
-      // Always clear thinking state and generate response for this specific conversation
-      setIsThinking(false)
-      setThinkingConvId(null)
-      setConversations((prev) =>
-        prev.map((c) => {
-          if (c.id !== currentConvId) return c
-          const ack = `Got it — I'll help with that.`
-          const asstMsg = {
-            id: Math.random().toString(36).slice(2),
-            role: "assistant",
-            content: ack,
-            createdAt: new Date().toISOString(),
-          }
-          const msgs = [...(c.messages || []), asstMsg]
-          return {
-            ...c,
-            messages: msgs,
-            updatedAt: new Date().toISOString(),
-            messageCount: msgs.length,
-            preview: asstMsg.content.slice(0, 80),
-          }
-        }),
-      )
-    }, 2000)
-  }
-
+    fetch('http://localhost:8000/ask', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ question: content }),
+    })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+      })
+      .then(data => {
+        setIsThinking(false);
+        setThinkingConvId(null);
+        setConversations((prev) =>
+          prev.map((c) => {
+            if (c.id !== currentConvId) return c;
+            const asstMsg = {
+              id: Math.random().toString(36).slice(2),
+              role: "assistant",
+              content: data.answer,
+              sources: data.sources, // Optional: store sources if you want to display them
+              createdAt: new Date().toISOString(),
+            };
+            const msgs = [...(c.messages || []), asstMsg];
+            return {
+              ...c,
+              messages: msgs,
+              updatedAt: new Date().toISOString(),
+              messageCount: msgs.length,
+              preview: asstMsg.content.slice(0, 80),
+            };
+          }),
+        );
+      })
+      .catch(error => {
+        console.error('Error fetching response:', error);
+        setIsThinking(false);
+        setThinkingConvId(null);
+        // Optionally, add an error message to the conversation
+        setConversations((prev) =>
+          prev.map((c) => {
+            if (c.id !== currentConvId) return c;
+            const errorMsg = {
+              id: Math.random().toString(36).slice(2),
+              role: "assistant",
+              content:"Sorry, I couldn't process your request. Please try again.",
+              createdAt: new Date().toISOString(),
+            };
+            const msgs = [...(c.messages || []), errorMsg];
+            return {
+              ...c,
+              messages: msgs,
+              updatedAt: new Date().toISOString(),
+              messageCount: msgs.length,
+              preview: errorMsg.content.slice(0, 80),
+            };
+          }),
+        );
+      });
+}
   function editMessage(convId, messageId, newContent) {
     const now = new Date().toISOString()
     setConversations((prev) =>
@@ -249,7 +285,7 @@ export default function AIAssistantUI() {
     <div className="h-screen w-full bg-zinc-50 text-zinc-900 dark:bg-zinc-950 dark:text-zinc-100">
       <div className="md:hidden sticky top-0 z-40 flex items-center gap-2 border-b border-zinc-200/60 bg-white/80 px-3 py-2 backdrop-blur dark:border-zinc-800 dark:bg-zinc-900/70">
         <div className="ml-1 flex items-center gap-2 text-sm font-semibold tracking-tight">
-          <span className="inline-flex h-4 w-4 items-center justify-center">✱</span> AI Assistant
+          <span className="inline-flex h-4 w-4 items-center justify-center">✱</span> Trishul AI
         </div>
         <div className="ml-auto flex items-center gap-2">
           <GhostIconButton label="Schedule">
