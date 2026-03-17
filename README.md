@@ -91,7 +91,7 @@ Response Sent to User
 
 ![img](frontend/public/architecture.png)
 
-## 📊 Dataset
+## 📊 Data
 
 - 📄 3,000+ medical documents
 - Sources: publicly available medical articles and guidelines
@@ -131,13 +131,13 @@ cd backend
 pip install -r requirements.txt
 ```
 
-# Environment Varibles
+### Environment Varibles
 
 ```bash
 GEMINI_API_KEY=your_api_key
 PINECONE_API_KEY=your_api_key
 ```
-# Run Backend Server
+### Run Backend Server
 
 ```bash
 uvicorn app:app --reload
@@ -146,7 +146,7 @@ Backend run at:
 
        http://127.0.0.1:8000
 
-# Frontend Setup
+### Frontend Setup
 ```bash
 cd ../frontend/nextjs-app
 npm install
