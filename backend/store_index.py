@@ -4,6 +4,8 @@ from langchain_pinecone import PineconeVectorStore
 from src.helper import load_pdf_files, filter_to_minimal_docs, text_split, download_embeddings
 from pinecone import Pinecone
 from pinecone import ServerlessSpec
+from unstructured.partition.auto import partition
+from langchain_community.document_loaders import UnstructuredPDFLoader
 
 load_dotenv(dotenv_path='.env')
 

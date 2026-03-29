@@ -177,12 +177,12 @@ export default function AIAssistantUI() {
     setThinkingConvId(convId)
 
     const currentConvId = convId
-    fetch('http://localhost:8000/ask', {
+    fetch('http://127.0.0.1:8000/chat', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ question: content }),
+      body: JSON.stringify({ msg: content }),
     })
       .then(response => {
         if (!response.ok) {

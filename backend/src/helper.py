@@ -1,12 +1,13 @@
-from langchain_community.document_loaders import PyPDFLoader, DirectoryLoader
+from langchain_community.document_loaders import PyPDFLoader, DirectoryLoader, UnstructuredPDFLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from typing import List
 from langchain_core.documents import Document
 from langchain_community.embeddings import HuggingFaceEmbeddings
 
+
 def load_pdf_files(data):
     # Load PDF files from the specified directory
-    loader = DirectoryLoader(data, glob="*.pdf", show_progress=True)
+    loader = DirectoryLoader(data, glob="*.pdf", show_progress=True, loader_cls=UnstructuredPDFLoader)
     documents = loader.load()
     # Split the documents into smaller chunks
     text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
