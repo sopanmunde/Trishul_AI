@@ -177,7 +177,7 @@ export default function AIAssistantUI() {
     setThinkingConvId(convId)
 
     const currentConvId = convId
-    fetch('http://127.0.0.1:8000/chat', {
+    fetch(process.env.NEXT_PUBLIC_API_BASE_URL, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
