@@ -179,5 +179,5 @@ async def chat(request: QueryRequest):
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(
-        "app:index",
+        "index:app",
         )
