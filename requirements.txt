@@ -1,5 +1,4 @@
 langchain
-flask
 sentence-transformers
 langchain-pinecone
 langchain-gemini
@@ -10,3 +9,9 @@ langchain-community
 fastapi
 uvicorn[standard]
 pydantic
+mangum
+langchain-google-genai
+motor
+pydantic[email]
+passlib[bcrypt]
+python-jose[cryptography]
