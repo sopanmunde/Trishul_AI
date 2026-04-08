@@ -57,29 +57,6 @@ app.add_middleware(
 )
 
 
-# @app.post("/api/register", response_model=dict)
-# async def register(user: UserCreate):
-#     # Check if user exists
-#     existing_user = await users_collection.find_one({"email": user.email})
-#     if existing_user:
-#         raise HTTPException(
-#             status_code=status.HTTP_400_BAD_REQUEST,
-#             detail="Email already registered"
-#         )
-
-
-#     # Create new user
-#     hashed_password = get_password_hash(user.password)
-#     user_dict = user.dict()
-#     user_dict["hashed_password"] = hashed_password
-#     user_dict["created_at"] = datetime.utcnow()
-#     del user_dict["password"]
-    
-#     await users_collection.insert_one(user_dict)
-    
-#     return {"message": "User created successfully"}
-
-
 @app.post("/api/register")
 async def register(user: UserCreate):
 
@@ -185,10 +162,6 @@ class QueryResponse(BaseModel):
     answer: str
     sources: list[str] = []
 
-# @app.get("/", response_class=JSONResponse)
-# async def index():
-#     return "<h2>Medical Chatbot API Running</h2>"
-
 # Chat endpoint
 @app.post("/chat")
 async def chat(request: QueryRequest):
@@ -206,5 +179,5 @@ async def chat(request: QueryRequest):
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(
-        "app:app",
+        "app:index",
         )
