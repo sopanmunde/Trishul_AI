@@ -205,10 +205,6 @@ async def chat(request: QueryRequest):
 
 if __name__ == "__main__":
     import uvicorn
-    print("Starting Trishul AI Backend Server...")
-    print("Make sure your .env file has valid PINECONE_API_KEY and GEMINI_API_KEY")
-    print("API will be available at: http://localhost:8000")
-    print("API docs at: http://localhost:8000/docs")
     uvicorn.run(
-        "main:app",
+        "app:app",
         )
