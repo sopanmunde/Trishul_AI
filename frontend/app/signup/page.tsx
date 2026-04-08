@@ -11,12 +11,16 @@ import { Label } from "@/components/ui/label"
 
 export default function SignupPage() {
   const [formData, setFormData] = useState({
-    name: "",
+    first_name: "",
+    last_name: "",
     email: "",
+    username: "",
     password: "",
     confirmPassword: "",
   })
+
   const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState("")
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData((prev) => ({
@@ -27,15 +31,45 @@ export default function SignupPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    setError("")
+
     if (formData.password !== formData.confirmPassword) {
-      console.log("[v0] Password mismatch")
+      setError("Passwords do not match")
       return
     }
+
     setIsLoading(true)
-    // Simulate signup process
-    await new Promise((resolve) => setTimeout(resolve, 1000))
-    setIsLoading(false)
-    console.log("[v0] Signup attempt:", formData)
+
+    try {
+      const res = await fetch("http://localhost:8000/api/register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: formData.email,
+          username: formData.username,
+          first_name: formData.first_name,
+          last_name: formData.last_name,
+          password: formData.password,
+          confirm_password: formData.confirmPassword,
+        }),
+      })
+
+      const data = await res.json()
+
+      if (!res.ok) {
+        throw new Error(data.detail || "Signup failed")
+      }
+
+      // ✅ redirect to login
+      window.location.href = "/login"
+
+    } catch (err: any) {
+      setError(err.message || "Signup failed")
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   return (
@@ -65,7 +99,7 @@ export default function SignupPage() {
       >
         {/* Header */}
         <div className="text-center mb-8">
-          <Link href="/" className="inline-block mb-6">
+          {/* <Link href="/" className="inline-block mb-6">
             <div className="flex items-center justify-center space-x-2">
               <svg
                 fill="currentColor"
@@ -78,9 +112,9 @@ export default function SignupPage() {
                 <path d="M147 56H133V23.9531L100.953 56H133V70H96.6875C85.8144 70 77 61.1856 77 50.3125V14H91V46.1562L123.156 14H91V0H127.312C138.186 0 147 8.81439 147 19.6875V56Z"></path>
               </svg>
             </div>
-          </Link>
+          </Link> */}
           <h1 className="text-3xl font-bold text-white mb-2">Create account</h1>
-          <p className="text-zinc-400">Join thousands of developers building with v0</p>
+          <p className="text-zinc-400">Join with Trishul-AI</p>
         </div>
 
         {/* Signup Form */}
@@ -90,17 +124,49 @@ export default function SignupPage() {
           transition={{ duration: 0.5, delay: 0.1 }}
           className="bg-zinc-900/50 backdrop-blur-xl border border-zinc-800 rounded-2xl p-8"
         >
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-6" autoComplete="off">
             <div className="space-y-2">
-              <Label htmlFor="name" className="text-white">
-                Full Name
+              <Label htmlFor="first_name" className="text-white">
+                First Name
               </Label>
               <Input
-                id="name"
-                name="name"
+                id="first_name"
+                name="first_name"
                 type="text"
-                placeholder="Enter your full name"
-                value={formData.name}
+                placeholder="Enter your first name"
+                value={formData.first_name}
+                onChange={handleChange}
+                className="bg-zinc-800/50 border-zinc-700 text-white placeholder:text-zinc-500 focus:border-[#e78a53] focus:ring-[#e78a53]/20"
+                required
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="last_name" className="text-white">
+                Last Name
+              </Label>
+              <Input
+                id="last_name"
+                name="last_name"
+                type="text"
+                placeholder="Enter your last name"
+                value={formData.last_name}
+                onChange={handleChange}
+                className="bg-zinc-800/50 border-zinc-700 text-white placeholder:text-zinc-500 focus:border-[#e78a53] focus:ring-[#e78a53]/20"
+                required
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="username" className="text-white">
+                Username
+              </Label>
+              <Input
+                id="username"
+                name="username"
+                type="text"
+                placeholder="Enter your username"
+                value={formData.username}
                 onChange={handleChange}
                 className="bg-zinc-800/50 border-zinc-700 text-white placeholder:text-zinc-500 focus:border-[#e78a53] focus:ring-[#e78a53]/20"
                 required
@@ -177,7 +243,7 @@ export default function SignupPage() {
             <Button
               type="submit"
               disabled={isLoading}
-              className="w-full bg-[#e78a53] hover:bg-[#e78a53]/90 text-white font-medium py-3 rounded-xl transition-colors"
+              className="w-full border-[#e78a53] bg-[#e78a53] hover:bg-[#e78a53]/90 text-white font-medium py-3 rounded-xl transition-colors"
             >
               {isLoading ? "Creating account..." : "Create account"}
             </Button>
@@ -256,3 +322,7 @@ export default function SignupPage() {
     </div>
   )
 }
+function setIsLoading(arg0: boolean) {
+  throw new Error("Function not implemented.")
+}
+

@@ -1,6 +1,6 @@
 "use client"
 
-import { motion } from "framer-motion"
+import { motion, cubicBezier } from "framer-motion"
 import { ArrowRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
@@ -18,7 +18,7 @@ const textRevealVariants = {
     y: 0,
     transition: {
       duration: 0.8,
-      ease: [0.22, 1, 0.36, 1],
+      ease: cubicBezier(0.22, 1, 0.36, 1),
       delay: i * 0.1,
     },
   }),
@@ -52,7 +52,7 @@ export function Hero() {
         >
           <span className="block overflow-hidden">
             <motion.span className="block" variants={textRevealVariants} initial="hidden" animate="visible" custom={0}>
-              Ship faster.
+              Talk to care.
             </motion.span>
           </span>
           <span className="block overflow-hidden">
@@ -63,7 +63,7 @@ export function Hero() {
               animate="visible"
               custom={1}
             >
-              Scale smarter.
+              Get help instantly.
             </motion.span>
           </span>
         </h1>
@@ -75,8 +75,7 @@ export function Hero() {
           transition={{ duration: 0.6, delay: 0.5 }}
           className="text-lg sm:text-xl text-zinc-400 max-w-2xl mx-auto mb-10 leading-relaxed"
         >
-          The modern platform for teams who ship fast. Built for scale, designed for speed. Everything you need to
-          build, deploy, and grow.
+          Everything you need to deliver instant, intelligent healthcare through AI chat.
         </motion.p>
 
         {/* CTAs */}

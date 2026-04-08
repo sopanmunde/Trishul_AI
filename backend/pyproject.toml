@@ -1,11 +1,10 @@
 [project]
 name = "trishul-ai"
 version = "0.1.0"
-description = "Add your description here"
+description = "Medical AI Assistance"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
-    "flask>=3.1.3",
     "langchain>=1.2.7",
     "langchain-community>=0.4.1",
     "langchain-core>=1.2.7",

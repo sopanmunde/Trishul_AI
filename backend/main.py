@@ -14,12 +14,8 @@ from langchain_core.prompts import ChatPromptTemplate
 
 from pinecone import Pinecone, ServerlessSpec
 from src.helper import load_pdf_files, filter_to_minimal_docs, text_split, download_embeddings
-# from store_index import docsearch
 from src.prompts import *
 from fastapi import APIRouter
-# from routes.entry import entry_root
-
-# from db.config.db_config import users_collection
 load_dotenv()
 
 from datetime import datetime, timedelta
@@ -60,40 +56,53 @@ app.add_middleware(
     allowed_hosts=["*"]  # Configure in production
 )
 
-# @app.post("/signup")
-# def signup(user: UserCreate):
-#     return {"msg": "user created"}
 
-# @app.post("/login", response_model=Token)
-# def login(user: UserLogin):
+# @app.post("/api/register", response_model=dict)
+# async def register(user: UserCreate):
+#     # Check if user exists
+#     existing_user = await users_collection.find_one({"email": user.email})
+#     if existing_user:
+#         raise HTTPException(
+#             status_code=status.HTTP_400_BAD_REQUEST,
+#             detail="Email already registered"
+#         )
 
-#     return {"access_token": "abc123", "token_type": "bearer"}
+
+#     # Create new user
+#     hashed_password = get_password_hash(user.password)
+#     user_dict = user.dict()
+#     user_dict["hashed_password"] = hashed_password
+#     user_dict["created_at"] = datetime.utcnow()
+#     del user_dict["password"]
+    
+#     await users_collection.insert_one(user_dict)
+    
+#     return {"message": "User created successfully"}
 
 
-
-# Include routers
-
-@app.post("/api/register", response_model=dict)
+@app.post("/api/register")
 async def register(user: UserCreate):
-    # Check if user exists
-    existing_user = await users_collection.find_one({"email": user.email})
-    if existing_user:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Email already registered"
-        )
 
+    # check existing user
+    if await users_collection.find_one({"email": user.email}):
+        raise HTTPException(status_code=400, detail="Email already registered")
 
-    # Create new user
-    hashed_password = get_password_hash(user.password)
-    user_dict = user.dict()
-    user_dict["hashed_password"] = hashed_password
+    # prepare data
+    user_dict = user.model_dump()
+
+    # remove sensitive fields
+    user_dict.pop("password")
+    user_dict.pop("confirm_password")
+
+    # add hashed password + timestamp
+    user_dict["hashed_password"] = get_password_hash(user.password)
     user_dict["created_at"] = datetime.utcnow()
-    del user_dict["password"]
-    
+
+    # insert into DB
     await users_collection.insert_one(user_dict)
-    
+
     return {"message": "User created successfully"}
+
 
 @app.post("/api/login", response_model=Token)
 async def login(user: UserLogin):
@@ -113,14 +122,6 @@ async def login(user: UserLogin):
     
     return {"access_token": access_token, "token_type": "bearer"}
 
-# @app.get("/api/me")
-# async def get_me(current_user = Depends(get_current_user)):
-#     return {
-#         "email": current_user["email"],
-#         "username": current_user["username"],
-#         "created_at": current_user["created_at"].isoformat() if current_user["created_at"] else None
-#     }
-
 @app.get("/api/me")
 async def get_me(current_user = Depends(get_current_user)):
     created_at = current_user.get("created_at")
@@ -130,10 +131,6 @@ async def get_me(current_user = Depends(get_current_user)):
         "username": current_user.get("username"),
         "created_at": created_at.isoformat() if isinstance(created_at, datetime) else None
     }
-
-# @app.get("/api/protected")
-# async def protected_route(current_user = Depends(get_current_user)):
-#     return {"message": f"Hello {current_user['username']}, you have access to this protected route!"}
 
 @app.get("/api/protected")
 async def protected_route(current_user = Depends(get_current_user)):
@@ -150,9 +147,6 @@ async def root():
 async def health_check():
     return {"status": "ok"}
 
-
-
-# API Keys
 
 PINECONE_API_KEY = os.getenv("PINECONE_API_KEY")
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
@@ -191,9 +185,9 @@ class QueryResponse(BaseModel):
     answer: str
     sources: list[str] = []
 
-@app.get("/", response_class=JSONResponse)
-async def index():
-    return "<h2>Medical Chatbot API Running</h2>"
+# @app.get("/", response_class=JSONResponse)
+# async def index():
+#     return "<h2>Medical Chatbot API Running</h2>"
 
 # Chat endpoint
 @app.post("/chat")
@@ -211,34 +205,10 @@ async def chat(request: QueryRequest):
 
 if __name__ == "__main__":
     import uvicorn
+    print("Starting Trishul AI Backend Server...")
+    print("Make sure your .env file has valid PINECONE_API_KEY and GEMINI_API_KEY")
+    print("API will be available at: http://localhost:8000")
+    print("API docs at: http://localhost:8000/docs")
     uvicorn.run(
         "main:app",
         )
-
-
-
-
-
-
-
-# @asynccontextmanager
-# async def lifespan(app: FastAPI):
-#     """Handle startup and shutdown events"""
-#     # Startup
-#     await connect_to_mongo()
-#     yield
-#     # Shutdown
-#     await close_mongo_connection()
-
-# Create FastAPI app
-# app = FastAPI(
-#     title="Authentication API",
-#     description="Secure authentication system with JWT",
-#     version="1.0.0",
-#     lifespan=lifespan
-# )
-
-# Rate limiting
-
-
-

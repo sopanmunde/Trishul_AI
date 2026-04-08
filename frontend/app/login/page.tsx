@@ -17,27 +17,66 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState("")
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setError("")
+  // const handleSubmit = async (e: React.FormEvent) => {
+  //   e.preventDefault()
+  //   setError("")
     
-    if (!email || !password) {
-      setError("Please fill in all fields")
-      return
+  //   if (!email || !password) {
+  //     setError("Please fill in all fields")
+  //     return
+  //   }
+
+  //   setIsLoading(true)
+  //   try {
+  //     // Simulate login process
+  //     await new Promise((resolve) => setTimeout(resolve, 1000))
+  //     // Redirect to home page after successful login
+  //     router.push("/")
+  //   } catch (err) {
+  //     setError("Login failed. Please try again.")
+  //   } finally {
+  //     setIsLoading(false)
+  //   }
+  // }
+
+const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault()
+  setError("")
+
+  if (!email || !password) {
+    setError("Please fill in all fields")
+    return
+  }
+
+  setIsLoading(true)
+  try {
+    const res = await fetch("http://localhost:8000/api/login", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        email,
+        password,
+      }),
+    })
+
+    const data = await res.json()
+
+    if (!res.ok) {
+      throw new Error(data.detail || "Login failed")
     }
 
-    setIsLoading(true)
-    try {
-      // Simulate login process
-      await new Promise((resolve) => setTimeout(resolve, 1000))
-      // Redirect to home page after successful login
-      router.push("/")
-    } catch (err) {
-      setError("Login failed. Please try again.")
-    } finally {
-      setIsLoading(false)
-    }
+    localStorage.setItem("token", data.access_token)
+
+    router.push("/dashboard")
+  } catch (err: any) {
+    setError(err.message || "Login failed. Please try again.")
+  } finally {
+    setIsLoading(false)
   }
+}
+
 
   return (
     <div className="min-h-screen bg-black flex items-center justify-center p-4">
@@ -66,7 +105,7 @@ export default function LoginPage() {
       >
         {/* Header */}
         <div className="text-center mb-8">
-          <Link href="/" className="inline-block mb-6">
+          {/* <Link href="/" className="inline-block mb-6">
             <div className="flex items-center justify-center space-x-2">
               <svg
                 fill="currentColor"
@@ -79,7 +118,7 @@ export default function LoginPage() {
                 <path d="M147 56H133V23.9531L100.953 56H133V70H96.6875C85.8144 70 77 61.1856 77 50.3125V14H91V46.1562L123.156 14H91V0H127.312C138.186 0 147 8.81439 147 19.6875V56Z"></path>
               </svg>
             </div>
-          </Link>
+          </Link> */}
           <h1 className="text-3xl font-bold text-white mb-2">Welcome back</h1>
           <p className="text-zinc-400">Sign in to your account to continue</p>
         </div>
