@@ -34,6 +34,7 @@ This project aims to provide **accurate, context-aware, and safe responses** usi
 Landing Page:
 
 ![img](frontend/public/ai-assist.png)
+
 Chat UI:
 
 ![img](frontend/public/chatbot-ui.png)
@@ -95,7 +96,7 @@ Response Sent to User
 
 ## Architecture Diagram
 
-![img](frontend/public/architecture.png width="300" height="200")
+![img](frontend/public/architecture.png)
 
 ## 📊 Data
 
