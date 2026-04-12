@@ -31,16 +31,18 @@ This project aims to provide **accurate, context-aware, and safe responses** usi
 ---
 
 # Chatbot UI
-
+![img](frontend/public/ai-assist.png)
 ![img](frontend/public/chatbot-ui.png)
+![watch Demo](https://www.linkedin.com/feed/update/urn:li:activity:7447968949478010880/?originTrackingId=MrGLC7OopkAH3czlEiPsLg%3D%3D)
 
 
 ## 🛠️ Tech Stack
 
 ### AI / ML
 - LangChain
-- OpenAI API / LLaMA
+- Google Gemini
 - NLP techniques
+- RAG techniuies
 
 ### Backend
 - FastAPI
@@ -48,10 +50,11 @@ This project aims to provide **accurate, context-aware, and safe responses** usi
 
 ### Frontend
 - Next.js
-- Clerk Authentication
+- JWT Authentication
 
 ### Database
 - Pinecone (Vector Database)
+- MongoDB
 
 ### Tools
 - Pandas, NumPy
@@ -64,7 +67,7 @@ This project aims to provide **accurate, context-aware, and safe responses** usi
 The system follows a **Retrieval-Augmented Generation (RAG)** pipeline combining semantic search with LLM-based response generation.
 
 ### 🔄 Architecture Flow
-
+```bash
 User Query  
 ↓  
 Frontend (Next.js UI)  
@@ -84,12 +87,12 @@ LLM (OpenAI / LLaMA)
 Context-Aware Response Generation  
 ↓  
 Response Sent to User  
-
+```
 ---
 
 ## Architecture Diagram
 
-![img](frontend/public/architecture.png)
+![img]("frontend/public/architecture.png" width="300" height="200")
 
 ## 📊 Data
 
@@ -136,21 +139,36 @@ pip install -r requirements.txt
 ```bash
 GEMINI_API_KEY=your_api_key
 PINECONE_API_KEY=your_api_key
+MONGODB_URL=your_monogodb_connection_url
+DATABASE_NAME=your_database_name
+SECRET_KEY=your_secret_key
+ACCESS_TOKEN_EXPIRE_MINUTES=minutes
 ```
 ### Run Backend Server
 
 ```bash
-uvicorn app:app --reload
+python main.py
 ```
 Backend run at:
 
-       http://127.0.0.1:8000
+       http://localhost:8000
 
 ### Frontend
 
-👉👉 Backend completed; frontend under active development using Next.js
+```bash
+cd frontend
 
+```
+### Environment Varibles
+```bash
+NEXT_PUBLIC_API_BASE_URL=your_backend_url
+```
 
+##  Run Frontend
+
+```bash
+bun dev
+```
 
 
 Author
