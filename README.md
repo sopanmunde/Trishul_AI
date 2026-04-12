@@ -31,9 +31,12 @@ This project aims to provide **accurate, context-aware, and safe responses** usi
 ---
 
 # Chatbot UI
+Landing Page:
+
 ![img](frontend/public/ai-assist.png)
+Chat UI:
+
 ![img](frontend/public/chatbot-ui.png)
-![watch Demo](https://www.linkedin.com/feed/update/urn:li:activity:7447968949478010880/?originTrackingId=MrGLC7OopkAH3czlEiPsLg%3D%3D)
 
 
 ## 🛠️ Tech Stack
@@ -92,7 +95,7 @@ Response Sent to User
 
 ## Architecture Diagram
 
-![img]("frontend/public/architecture.png" width="300" height="200")
+![img](frontend/public/architecture.png width="300" height="200")
 
 ## 📊 Data
 
