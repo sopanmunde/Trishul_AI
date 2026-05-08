@@ -7,7 +7,7 @@ import Header from "./Header"
 import ChatPane from "./ChatPane"
 import GhostIconButton from "./GhostIconButton"
 import ThemeToggle from "./ThemeToggle"
-import { INITIAL_CONVERSATIONS, INITIAL_TEMPLATES, INITIAL_FOLDERS } from "./mockData"
+import { INITIAL_TEMPLATES, INITIAL_FOLDERS } from "./mockData"
 
 export default function AIAssistantUI() {
   const [theme, setTheme] = useState(() => {
@@ -71,7 +71,8 @@ export default function AIAssistantUI() {
     } catch {}
   }, [sidebarCollapsed])
 
-  const [conversations, setConversations] = useState(INITIAL_CONVERSATIONS)
+  const [conversations, setConversations] = useState([])
+  const [isConversationsLoaded, setIsConversationsLoaded] = useState(false)
   const [selectedId, setSelectedId] = useState(null)
   const [templates, setTemplates] = useState(INITIAL_TEMPLATES)
   const [folders, setFolders] = useState(INITIAL_FOLDERS)
@@ -102,10 +103,63 @@ export default function AIAssistantUI() {
   }, [sidebarOpen, conversations])
 
   useEffect(() => {
-    if (!selectedId && conversations.length > 0) {
-      createNewChat()
+    const fetchConversations = async () => {
+      const token = localStorage.getItem("token");
+      if (!token) return;
+      try {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/conversations`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        if (res.ok) {
+          const data = await res.json();
+          setConversations(data.map(c => ({ 
+            ...c, 
+            updatedAt: c.updated_at || c.updatedAt || new Date().toISOString(),
+            messages: c.messages || [], 
+            messageCount: c.messages?.length || 0 
+          })));
+          setIsConversationsLoaded(true);
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    };
+    fetchConversations();
+  }, []);
+
+  useEffect(() => {
+    if (isConversationsLoaded && !selectedId) {
+      if (conversations.length === 0) {
+        createNewChat()
+      } else {
+        setSelectedId(conversations[0].id)
+      }
     }
-  }, [])
+  }, [isConversationsLoaded, selectedId, conversations.length])
+
+  useEffect(() => {
+    if (!selectedId) return;
+    const conv = conversations.find(c => c.id === selectedId);
+    if (conv && (!conv.messages || conv.messages.length === 0) && conv.messageCount !== 0) {
+      // Fetch messages if not already fetched
+      const fetchMessages = async () => {
+        const token = localStorage.getItem("token");
+        if (!token) return;
+        try {
+          const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/conversations/${selectedId}/messages`, {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+          if (res.ok) {
+            const msgs = await res.json();
+            setConversations(prev => prev.map(c => c.id === selectedId ? { ...c, messages: msgs, messageCount: msgs.length, preview: msgs.length > 0 ? msgs[msgs.length - 1].content.slice(0, 80) : c.preview } : c));
+          }
+        } catch (err) {
+          console.error(err);
+        }
+      };
+      fetchMessages();
+    }
+  }, [selectedId, conversations]);
 
   const filtered = useMemo(() => {
     if (!query.trim()) return conversations
@@ -130,21 +184,35 @@ export default function AIAssistantUI() {
     setConversations((prev) => prev.map((c) => (c.id === id ? { ...c, pinned: !c.pinned } : c)))
   }
 
-  function createNewChat() {
-    const id = Math.random().toString(36).slice(2)
-    const item = {
-      id,
-      title: "New Chat",
-      updatedAt: new Date().toISOString(),
-      messageCount: 0,
-      preview: "Say hello to start...",
-      pinned: false,
-      folder: "Work Projects",
-      messages: [], // Ensure messages array is empty for new chats
+  async function createNewChat() {
+    const token = localStorage.getItem("token");
+    if (!token) return;
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/conversations`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          title: "New Chat",
+          folder: "Work Projects",
+          pinned: false
+        })
+      });
+      if (res.ok) {
+        const item = await res.json();
+        item.updatedAt = item.updated_at || item.updatedAt || new Date().toISOString();
+        item.messages = [];
+        item.messageCount = 0;
+        item.preview = "Say hello to start...";
+        setConversations(prev => [item, ...prev]);
+        setSelectedId(item.id);
+        setSidebarOpen(false);
+      }
+    } catch (err) {
+      console.error(err);
     }
-    setConversations((prev) => [item, ...prev])
-    setSelectedId(id)
-    setSidebarOpen(false)
   }
 
   function createFolder() {
@@ -154,92 +222,110 @@ export default function AIAssistantUI() {
     setFolders((prev) => [...prev, { id: Math.random().toString(36).slice(2), name }])
   }
 
-  function sendMessage(convId, content) {
-    if (!content.trim()) return
-    const now = new Date().toISOString()
-    const userMsg = { id: Math.random().toString(36).slice(2), role: "user", content, createdAt: now }
+  async function sendMessage(convId, content) {
+    const token = localStorage.getItem("token");
+    if (!content.trim()) return;
+    const now = new Date().toISOString();
+    const userMsg = { id: Math.random().toString(36).slice(2), role: "user", content, createdAt: now };
+
+    // Initialize the assistant message with empty content to stream into
+    const asstMsgId = Math.random().toString(36).slice(2);
+    const initialAsstMsg = { id: asstMsgId, role: "assistant", content: "", createdAt: now };
 
     setConversations((prev) =>
       prev.map((c) => {
-        if (c.id !== convId) return c
-        const msgs = [...(c.messages || []), userMsg]
+        if (c.id !== convId) return c;
+        const msgs = [...(c.messages || []), userMsg, initialAsstMsg];
         return {
           ...c,
           messages: msgs,
           updatedAt: now,
           messageCount: msgs.length,
           preview: content.slice(0, 80),
-        }
-      }),
-    )
-
-    setIsThinking(true)
-    setThinkingConvId(convId)
-
-    const currentConvId = convId
-    fetch(process.env.NEXT_PUBLIC_API_BASE_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ msg: content }),
-    })
-      .then(response => {
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        return response.json();
+        };
       })
-      .then(data => {
-        setIsThinking(false);
-        setThinkingConvId(null);
-        setConversations((prev) =>
-          prev.map((c) => {
-            if (c.id !== currentConvId) return c;
-            const asstMsg = {
-              id: Math.random().toString(36).slice(2),
-              role: "assistant",
-              content: data.answer,
-              sources: data.sources, // Optional: store sources if you want to display them
-              createdAt: new Date().toISOString(),
-            };
-            const msgs = [...(c.messages || []), asstMsg];
-            return {
-              ...c,
-              messages: msgs,
-              updatedAt: new Date().toISOString(),
-              messageCount: msgs.length,
-              preview: asstMsg.content.slice(0, 80),
-            };
-          }),
-        );
-      })
-      .catch(error => {
-        console.error('Error fetching response:', error);
-        setIsThinking(false);
-        setThinkingConvId(null);
-        // Optionally, add an error message to the conversation
-        setConversations((prev) =>
-          prev.map((c) => {
-            if (c.id !== currentConvId) return c;
-            const errorMsg = {
-              id: Math.random().toString(36).slice(2),
-              role: "assistant",
-              content:"Sorry, I couldn't process your request. Please try again.",
-              createdAt: new Date().toISOString(),
-            };
-            const msgs = [...(c.messages || []), errorMsg];
-            return {
-              ...c,
-              messages: msgs,
-              updatedAt: new Date().toISOString(),
-              messageCount: msgs.length,
-              preview: errorMsg.content.slice(0, 80),
-            };
-          }),
-        );
+    );
+
+    setIsThinking(true);
+    setThinkingConvId(convId);
+
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/chat`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ msg: content, conversation_id: convId }),
       });
-}
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      setIsThinking(false);
+      setThinkingConvId(null);
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder("utf-8");
+      let done = false;
+      let textContent = "";
+      let buffer = "";
+
+      while (!done) {
+        const { value, done: readerDone } = await reader.read();
+        done = readerDone;
+        if (value) {
+          buffer += decoder.decode(value, { stream: true });
+          const lines = buffer.split("\n\n");
+          buffer = lines.pop() || ""; // keep the incomplete part in buffer
+          for (const line of lines) {
+            if (line.startsWith("data: ")) {
+              const dataStr = line.slice(6);
+              try {
+                const data = JSON.parse(dataStr);
+                if (data.error) {
+                  throw new Error(data.error);
+                }
+                if (data.text) {
+                  textContent += data.text;
+                  setConversations((prev) =>
+                    prev.map((c) => {
+                      if (c.id !== convId) return c;
+                      const msgs = c.messages.map(m => m.id === asstMsgId ? { ...m, content: textContent } : m);
+                      return { ...c, messages: msgs, preview: textContent.slice(0, 80) };
+                    })
+                  );
+                }
+                if (data.done) {
+                  setConversations((prev) =>
+                    prev.map((c) => {
+                      if (c.id !== convId) return c;
+                      const msgs = c.messages.map(m => m.id === asstMsgId ? { ...m, sources: data.sources } : m);
+                      return { ...c, messages: msgs };
+                    })
+                  );
+                }
+              } catch (e) {
+                // Ignore incomplete JSON parses as chunks might break mid-string, although unlikely with \n\n boundaries
+              }
+            }
+          }
+        }
+      }
+    } catch (error) {
+      console.error("Error fetching response:", error);
+      setIsThinking(false);
+      setThinkingConvId(null);
+      setConversations((prev) =>
+        prev.map((c) => {
+          if (c.id !== convId) return c;
+          const msgs = c.messages.map(m => m.id === asstMsgId ? { ...m, content: "Sorry, I couldn't process your request. Please try again." } : m);
+          return { ...c, messages: msgs };
+        })
+      );
+    }
+  }
   function editMessage(convId, messageId, newContent) {
     const now = new Date().toISOString()
     setConversations((prev) =>

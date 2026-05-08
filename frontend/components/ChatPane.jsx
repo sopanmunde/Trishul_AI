@@ -131,10 +131,10 @@ const ChatPane = forwardRef(function ChatPane(
                     </div>
                   </div>
                 ) : (
-                  <Message role={m.role}>
-                    <div className="whitespace-pre-wrap">{m.content}</div>
+                  <div className="flex flex-col gap-1">
+                    <Message role={m.role} content={m.content} />
                     {m.role === "user" && (
-                      <div className="mt-1 flex gap-2 text-[11px] text-zinc-500">
+                      <div className="flex gap-2 text-[11px] text-zinc-500 self-end mr-12">
                         <button className="inline-flex items-center gap-1 hover:underline" onClick={() => startEdit(m)}>
                           <Pencil className="h-3.5 w-3.5" /> Edit
                         </button>
@@ -146,7 +146,7 @@ const ChatPane = forwardRef(function ChatPane(
                         </button>
                       </div>
                     )}
-                  </Message>
+                  </div>
                 )}
               </div>
             ))}

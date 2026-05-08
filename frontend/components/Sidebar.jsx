@@ -22,7 +22,7 @@ import CreateTemplateModal from "./CreateTemplateModal"
 import SearchModal from "./SearchModal"
 import SettingsPopover from "./SettingsPopover"
 import { cls } from "./utils"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 
 export default function Sidebar({
   open,
@@ -54,6 +54,11 @@ export default function Sidebar({
   const [showCreateTemplateModal, setShowCreateTemplateModal] = useState(false)
   const [editingTemplate, setEditingTemplate] = useState(null)
   const [showSearchModal, setShowSearchModal] = useState(false)
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   const handleSearchClick = () => {
     setShowSearchModal(true)
@@ -216,7 +221,7 @@ export default function Sidebar({
       </AnimatePresence>
 
       <AnimatePresence>
-        {(open || typeof window !== "undefined") && (
+        {(open || mounted) && (
           <motion.aside
             key="sidebar"
             initial={{ x: -340 }}

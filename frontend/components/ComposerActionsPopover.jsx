@@ -1,17 +1,57 @@
 "use client"
-import { useState } from "react"
+import { useState, useRef } from "react"
 import { Paperclip, Bot, Search, Palette, BookOpen, MoreHorizontal, Globe, ChevronRight } from "lucide-react"
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover"
 
 export default function ComposerActionsPopover({ children }) {
   const [open, setOpen] = useState(false)
   const [showMore, setShowMore] = useState(false)
+  const [isUploading, setIsUploading] = useState(false)
+  const fileInputRef = useRef(null)
+
+  const handleUpload = async (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (!file.name.endsWith('.pdf')) {
+      alert("Only PDF files are supported currently.");
+      return;
+    }
+
+    setIsUploading(true);
+    const token = localStorage.getItem("token");
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/documents/upload`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error("Upload failed");
+      }
+
+      const result = await response.json();
+      alert(`Upload successful! Indexed ${result.chunks} chunks.`);
+    } catch (error) {
+      console.error("Error uploading document:", error);
+      alert("Failed to upload document.");
+    } finally {
+      setIsUploading(false);
+      setOpen(false);
+    }
+  }
 
   const mainActions = [
     {
       icon: Paperclip,
-      label: "Add photos & files",
-      action: () => console.log("Add photos & files"),
+      label: isUploading ? "Uploading..." : "Add photos & files",
+      action: () => fileInputRef.current?.click(),
     },
     {
       icon: Bot,
@@ -190,6 +230,13 @@ export default function ComposerActionsPopover({ children }) {
           </div>
         )}
       </PopoverContent>
+      <input 
+        type="file" 
+        accept=".pdf" 
+        className="hidden" 
+        ref={fileInputRef} 
+        onChange={handleUpload} 
+      />
     </Popover>
   )
 }

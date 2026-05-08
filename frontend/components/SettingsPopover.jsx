@@ -2,9 +2,11 @@
 import { useState } from "react"
 import { Globe, HelpCircle, Crown, BookOpen, LogOut, ChevronRight, Settings } from "lucide-react"
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover"
+import { UserProfileModal } from "./UserProfileModal"
 
 export default function SettingsPopover({ children }) {
   const [open, setOpen] = useState(false)
+  const [isProfileOpen, setIsProfileOpen] = useState(false)
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -33,7 +35,13 @@ export default function SettingsPopover({ children }) {
           </div>
 
           <div className="space-y-0.5">
-            <button className="flex items-center gap-3 w-full px-3 py-2.5 text-sm text-left hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors">
+            <button 
+              onClick={() => {
+                setOpen(false)
+                setIsProfileOpen(true)
+              }}
+              className="flex items-center gap-3 w-full px-3 py-2.5 text-sm text-left hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors"
+            >
               <Settings className="h-4 w-4 text-zinc-500" />
               <span>Settings</span>
             </button>
@@ -73,6 +81,11 @@ export default function SettingsPopover({ children }) {
           </button>
         </div>
       </PopoverContent>
+      <UserProfileModal 
+        isOpen={isProfileOpen} 
+        onClose={() => setIsProfileOpen(false)} 
+      />
     </Popover>
   )
 }
+

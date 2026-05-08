@@ -3,7 +3,17 @@ from langchain_text_splitters import RecursiveCharacterTextSplitter
 from typing import List
 from langchain_core.documents import Document
 from langchain_community.embeddings import HuggingFaceEmbeddings
+import os
 
+def get_llm(provider: str = "gemini"):
+    if provider == "openai":
+        from langchain_openai import ChatOpenAI
+        return ChatOpenAI(model="gpt-4o", streaming=True)
+    elif provider == "gemini":
+        from langchain_google_genai import ChatGoogleGenerativeAI
+        return ChatGoogleGenerativeAI(model="gemini-3-flash-preview", streaming=True)
+    else:
+        raise ValueError(f"Unknown provider: {provider}")
 
 def load_pdf_files(data):
     # Load PDF files from the specified directory

@@ -1,10 +1,13 @@
-from fastapi import FastAPI, HTTPException, status, Depends
+import asyncio
+from bson import ObjectId
+from fastapi import FastAPI, HTTPException, status, Depends, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, StreamingResponse
 from pydantic import BaseModel
 import os
-
+import json
+from bson.errors import InvalidId
 from dotenv import load_dotenv
 from langchain_pinecone import PineconeVectorStore
 from langchain_google_genai import ChatGoogleGenerativeAI
@@ -13,14 +16,14 @@ from langchain_classic.chains.combine_documents import create_stuff_documents_ch
 from langchain_core.prompts import ChatPromptTemplate
 
 from pinecone import Pinecone, ServerlessSpec
-from src.helper import load_pdf_files, filter_to_minimal_docs, text_split, download_embeddings
+from src.helper import load_pdf_files, filter_to_minimal_docs, text_split, download_embeddings, get_llm
 from src.prompts import *
 from fastapi import APIRouter
 load_dotenv()
 
 from datetime import datetime, timedelta
-from db.database import users_collection
-from models import UserCreate, UserLogin, Token
+from db.database import users_collection, messages_collection, conversations_collection
+from models import UserCreate, UserLogin, Token, ConversationCreate, ConversationUpdate, UserUpdate
 from auth import (
     get_password_hash, 
     authenticate_user, 
@@ -55,6 +58,50 @@ app.add_middleware(
     TrustedHostMiddleware,
     allowed_hosts=["*"]  # Configure in production
 )
+
+
+PINECONE_API_KEY = os.getenv("PINECONE_API_KEY")
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+
+os.environ["PINECONE_API_KEY"] = PINECONE_API_KEY
+os.environ["GEMINI_API_KEY"] = GEMINI_API_KEY
+
+# Init embeddings + vector store
+embeddings = download_embeddings()
+
+index_name = "trishul-ai"
+
+docsearch = PineconeVectorStore.from_existing_index(
+    index_name=index_name,
+    embedding=embeddings
+)
+
+retriever = docsearch.as_retriever(search_kwargs={"k": 3})
+
+# LLM
+chatModel = get_llm(os.getenv("LLM_PROVIDER", "gemini"))
+
+prompt = ChatPromptTemplate.from_messages([
+    ("system", system_prompt),
+    ("human", "{input}")
+])
+
+qa_chain = create_stuff_documents_chain(chatModel, prompt)
+rag_chain = create_retrieval_chain(retriever, qa_chain)
+
+# Request model
+class QueryRequest(BaseModel):
+    msg: str
+    conversation_id: str | None = None
+
+class QueryResponse(BaseModel):
+    answer: str
+    sources: list[str] = []
+
+
+@app.get("/")
+async def root():
+    return {"message": "Authentication API is running", "status": "healthy"}
 
 
 @app.post("/api/register")
@@ -106,75 +153,250 @@ async def get_me(current_user = Depends(get_current_user)):
     return {
         "email": current_user.get("email"),
         "username": current_user.get("username"),
+        "first_name": current_user.get("first_name"),
+        "last_name": current_user.get("last_name"),
         "created_at": created_at.isoformat() if isinstance(created_at, datetime) else None
     }
 
-@app.get("/api/protected")
-async def protected_route(current_user = Depends(get_current_user)):
-    return {
-        "message": f"Hello {current_user.get('username', 'User')}, you have access successfully!"
-    }
+@app.put("/api/me")
+async def update_me(user_update: UserUpdate, current_user = Depends(get_current_user)):
+    update_data = {k: v for k, v in user_update.model_dump(exclude_unset=True).items() if v is not None}
+    
+    if not update_data:
+        return {"message": "Nothing to update"}
+        
+    update_data["updated_at"] = datetime.utcnow()
+    
+    result = await users_collection.update_one(
+        {"_id": current_user["_id"]},
+        {"$set": update_data}
+    )
+    
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="User not found")
+        
+    return {"message": "Profile updated successfully"}
 
+# @app.get("/api/protected")
+# async def protected_route(current_user = Depends(get_current_user)):
+#     return {
+#         "message": f"Hello {current_user.get('username', 'User')}, you have access successfully!"
+#     }
 
-@app.get("/")
-async def root():
-    return {"message": "Authentication API is running", "status": "healthy"}
+# --- CONVERSATION CRUD ---
+@app.get("/api/conversations")
+async def get_conversations(current_user=Depends(get_current_user)):
+    user_id = str(current_user["_id"])
+    conversations = await conversations_collection.find({"user_id": user_id}).sort("updated_at", -1).to_list(1000)
+    for c in conversations:
+        c["id"] = str(c["_id"])
+        if "_id" in c:
+            del c["_id"]
+    return conversations
 
-@app.get("/health")
-async def health_check():
-    return {"status": "ok"}
+@app.post("/api/conversations")
+async def create_conversation(conv: ConversationCreate, current_user=Depends(get_current_user)):
+    user_id = str(current_user["_id"])
+    conv_dict = conv.model_dump()
+    conv_dict["user_id"] = user_id
+    conv_dict["created_at"] = datetime.utcnow()
+    conv_dict["updated_at"] = datetime.utcnow()
+    
+    result = await conversations_collection.insert_one(conv_dict)
+    conv_dict["id"] = str(result.inserted_id)
+    if "_id" in conv_dict:
+        del conv_dict["_id"]
+    return conv_dict
 
+@app.put("/api/conversations/{conversation_id}")
+async def update_conversation(conversation_id: str, conv_update: ConversationUpdate, current_user=Depends(get_current_user)):
+    user_id = str(current_user["_id"])
+    try:
+        obj_id = ObjectId(conversation_id)
+    except InvalidId:
+        raise HTTPException(status_code=400, detail="Invalid conversation ID")
+        
+    update_data = {k: v for k, v in conv_update.model_dump(exclude_unset=True).items() if v is not None}
+    if not update_data:
+        return {"message": "Nothing to update"}
+        
+    update_data["updated_at"] = datetime.utcnow()
+    
+    result = await conversations_collection.update_one(
+        {"_id": obj_id, "user_id": user_id},
+        {"$set": update_data}
+    )
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Conversation not found")
+        
+    return {"message": "Conversation updated"}
 
-PINECONE_API_KEY = os.getenv("PINECONE_API_KEY")
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+@app.delete("/api/conversations/{conversation_id}")
+async def delete_conversation(conversation_id: str, current_user=Depends(get_current_user)):
+    user_id = str(current_user["_id"])
+    try:
+        obj_id = ObjectId(conversation_id)
+    except InvalidId:
+        raise HTTPException(status_code=400, detail="Invalid conversation ID")
+        
+    result = await conversations_collection.delete_one({"_id": obj_id, "user_id": user_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Conversation not found")
+        
+    # Also delete messages
+    await messages_collection.delete_many({"conversation_id": conversation_id})
+    
+    return {"message": "Conversation deleted"}
 
-os.environ["PINECONE_API_KEY"] = PINECONE_API_KEY
-os.environ["GEMINI_API_KEY"] = GEMINI_API_KEY
-
-# Init embeddings + vector store
-embeddings = download_embeddings()
-
-index_name = "trishul-ai"
-
-docsearch = PineconeVectorStore.from_existing_index(
-    index_name=index_name,
-    embedding=embeddings
-)
-
-retriever = docsearch.as_retriever(search_kwargs={"k": 3})
-
-# LLM
-chatModel = ChatGoogleGenerativeAI(model="gemini-3-flash-preview")
-
-prompt = ChatPromptTemplate.from_messages([
-    ("system", system_prompt),
-    ("human", "{input}")
-])
-
-qa_chain = create_stuff_documents_chain(chatModel, prompt)
-rag_chain = create_retrieval_chain(retriever, qa_chain)
-
-# Request model
-class QueryRequest(BaseModel):
-    msg: str
-
-class QueryResponse(BaseModel):
-    answer: str
-    sources: list[str] = []
+@app.get("/api/conversations/{conversation_id}/messages")
+async def get_conversation_messages(conversation_id: str, current_user=Depends(get_current_user)):
+    user_id = str(current_user["_id"])
+    try:
+        obj_id = ObjectId(conversation_id)
+    except InvalidId:
+        raise HTTPException(status_code=400, detail="Invalid conversation ID")
+        
+    conv = await conversations_collection.find_one({"_id": obj_id, "user_id": user_id})
+    if not conv:
+        raise HTTPException(status_code=404, detail="Conversation not found")
+        
+    messages = await messages_collection.find({"conversation_id": conversation_id}).to_list(1000)
+    for m in messages:
+        m["id"] = str(m["_id"])
+        if "_id" in m:
+            del m["_id"]
+        
+    return messages
 
 # Chat endpoint
-@app.post("/chat")
-async def chat(request: QueryRequest):
-    try:
-        response = rag_chain.invoke({"input": request.msg})
-        return JSONResponse(content={
-            "answer": response["answer"]
+# @app.post("/api/chat")
+# async def chat(request: QueryRequest, current_user=Depends(get_current_user)):
+#     try:
+#         answer = ""
+#         sources: list[str] = []
+
+#         if request.session_id:
+#             await messages_collection.insert_one({
+#                 "session_id": request.session_id,
+#                 "user_email": current_user["email"],
+#                 "role": "user",
+#                 "content": request.msg,
+#                 "timestamp": datetime.utcnow(),
+#             })
+
+#         response = rag_chain.invoke({"input": request.msg})
+#         answer = response.get("answer", "")
+#         sources = response.get("sources", [])
+
+#         if request.session_id:
+#             await messages_collection.insert_one({
+#                 "session_id": request.session_id,
+#                 "user_email": current_user["email"],
+#                 "role": "assistant",
+#                 "content": answer,
+#                 "sources": sources,
+#                 "timestamp": datetime.utcnow(),
+#             })
+
+#         return JSONResponse(content={"answer": answer, "sources": sources})
+#     except Exception as e:
+#         return JSONResponse(content={"error": str(e)}, status_code=500)
+
+@app.post("/api/chat")
+async def chat(request: QueryRequest, current_user=Depends(get_current_user)):
+    user_id = str(current_user["_id"])
+    
+    if request.conversation_id:
+        await messages_collection.insert_one({
+            "conversation_id": request.conversation_id,
+            "user_id": user_id,
+            "role": "user",
+            "content": request.msg,
+            "created_at": datetime.utcnow(),
         })
+
+    async def generate():
+        full_answer = ""
+        sources = []
+        
+        try:
+            # We are using astream from langchain
+            async for chunk in rag_chain.astream({"input": request.msg}):
+                if "answer" in chunk:
+                    text_chunk = chunk["answer"]
+                    full_answer += text_chunk
+                    yield f"data: {json.dumps({'text': text_chunk})}\n\n"
+                
+                if "context" in chunk:
+                    sources = [{"page_content": doc.page_content, "metadata": doc.metadata} for doc in chunk["context"]]
+            
+            # Save assistant message after streaming completes
+            if request.conversation_id:
+                await messages_collection.insert_one({
+                    "conversation_id": request.conversation_id,
+                    "user_id": user_id,
+                    "role": "assistant",
+                    "content": full_answer,
+                    "sources": sources,
+                    "created_at": datetime.utcnow(),
+                })
+                
+                try:
+                    obj_id = ObjectId(request.conversation_id)
+                    await conversations_collection.update_one(
+                        {"_id": obj_id},
+                        {"$set": {"updated_at": datetime.utcnow()}}
+                    )
+                except InvalidId:
+                    pass
+                    
+            yield f"data: {json.dumps({'done': True, 'sources': sources})}\n\n"
+        except Exception as e:
+            import traceback
+            traceback.print_exc()
+            yield f"data: {json.dumps({'error': str(e)})}\n\n"
+
+    return StreamingResponse(generate(), media_type="text/event-stream")
+
+@app.post("/api/documents/upload")
+async def upload_document(
+    file: UploadFile = File(...),
+    current_user=Depends(get_current_user)
+):
+    import tempfile
+    import os
+    from langchain_community.document_loaders import PyPDFLoader
+    from langchain_text_splitters import RecursiveCharacterTextSplitter
+    
+    if not file.filename.endswith('.pdf'):
+        raise HTTPException(status_code=400, detail="Only PDF files are supported currently")
+        
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp:
+        content = await file.read()
+        tmp.write(content)
+        tmp_path = tmp.name
+        
+    try:
+        loader = PyPDFLoader(tmp_path)
+        docs = loader.load()
+        
+        text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
+        splits = text_splitter.split_documents(docs)
+        
+        user_id = str(current_user["_id"])
+        for split in splits:
+            split.metadata["user_id"] = user_id
+            split.metadata["filename"] = file.filename
+            
+        docsearch.add_documents(splits)
+        
+        return {"message": "Document processed and indexed successfully", "chunks": len(splits)}
     except Exception as e:
-        return JSONResponse(content={"error": str(e)}, status_code=500)
-
-
-
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        os.unlink(tmp_path)
 
 if __name__ == "__main__":
     import uvicorn
