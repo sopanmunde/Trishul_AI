@@ -69,11 +69,11 @@ const Composer = forwardRef(function Composer({ onSend, busy }, ref) {
   const hasContent = value.trim().length > 0
 
   return (
-    <div className="border-t border-zinc-200/60 p-4 dark:border-zinc-800">
+    <div className="p-4 pb-6">
       <div
         className={cls(
-          "mx-auto flex flex-col rounded-3xl border bg-white shadow-sm dark:bg-zinc-950 transition-all duration-200",
-          "max-w-3xl border-zinc-200 dark:border-zinc-800",
+          "mx-auto flex flex-col rounded-3xl bg-[#f4f4f4] dark:bg-[#2f2f2f] transition-all duration-200",
+          "max-w-3xl",
         )}
       >
         {/* Textarea area - grows upward */}
@@ -85,8 +85,8 @@ const Composer = forwardRef(function Composer({ onSend, busy }, ref) {
             placeholder="How can I help you today?"
             rows={1}
             className={cls(
-              "w-full resize-none bg-transparent text-sm outline-none placeholder:text-zinc-400 transition-all duration-200",
-              "min-h-[24px] text-left leading-6",
+              "w-full resize-none bg-transparent text-sm outline-none placeholder:text-[#676767] dark:placeholder:text-[#b4b4b4] transition-all duration-200",
+              "min-h-[24px] text-left leading-6 text-[#0d0d0d] dark:text-[#ececec]",
             )}
             onKeyDown={(e) => {
               if (e.key === "Enter" && !e.shiftKey) {
@@ -121,8 +121,8 @@ const Composer = forwardRef(function Composer({ onSend, busy }, ref) {
               className={cls(
                 "inline-flex shrink-0 items-center justify-center rounded-full p-2.5 transition-colors",
                 hasContent
-                  ? "bg-zinc-900 text-white hover:bg-zinc-800 dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-200"
-                  : "bg-zinc-200 text-zinc-400 dark:bg-zinc-800 dark:text-zinc-600 cursor-not-allowed",
+                  ? "bg-black text-white dark:bg-white dark:text-black"
+                  : "bg-[#e5e5e5] text-white dark:bg-[#424242] dark:text-[#2f2f2f] cursor-not-allowed",
               )}
             >
               {sending || busy ? <Loader2 className="h-5 w-5 animate-spin" /> : <Send className="h-5 w-5" />}

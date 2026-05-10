@@ -51,7 +51,7 @@ export default function TemplateRow({ template, onUseTemplate, onEditTemplate, o
 
   return (
     <div className="group">
-      <div className="flex items-center justify-between rounded-lg px-2 py-2 text-sm hover:bg-zinc-100 dark:hover:bg-zinc-800">
+      <div className="flex items-center justify-between rounded-lg px-2 py-2 text-sm hover:bg-black/5 dark:hover:bg-[#212121]">
         <button
           onClick={handleUse}
           className="flex items-center gap-2 flex-1 text-left min-w-0"
@@ -73,7 +73,7 @@ export default function TemplateRow({ template, onUseTemplate, onEditTemplate, o
                 e.stopPropagation()
                 setShowMenu(!showMenu)
               }}
-              className="opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-opacity"
+              className="opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-black/10 dark:hover:bg-[#2f2f2f] transition-opacity"
             >
               <MoreHorizontal className="h-3 w-3" />
             </button>
