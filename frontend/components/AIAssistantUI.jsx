@@ -1,11 +1,9 @@
 "use client"
 
 import React, { useEffect, useMemo, useRef, useState } from "react"
-import { Calendar, LayoutGrid, MoreHorizontal } from "lucide-react"
 import Sidebar from "./Sidebar"
 import Header from "./Header"
 import ChatPane from "./ChatPane"
-import GhostIconButton from "./GhostIconButton"
 import ThemeToggle from "./ThemeToggle"
 import { INITIAL_TEMPLATES, INITIAL_FOLDERS } from "./mockData"
 
@@ -92,6 +90,28 @@ export default function AIAssistantUI() {
 
   const [isThinking, setIsThinking] = useState(false)
   const [thinkingConvId, setThinkingConvId] = useState(null)
+  const [user, setUser] = useState(null)
+
+  const fetchUser = async () => {
+    try {
+      const token = localStorage.getItem("token")
+      if (!token) return
+      const apiUrl = process.env.NEXT_PUBLIC_API_BASE_URL
+      const res = await fetch(`${apiUrl}/me`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      if (res.ok) {
+        const data = await res.json()
+        setUser(data)
+      }
+    } catch (err) {
+      console.error("Failed to fetch user", err)
+    }
+  }
+
+  useEffect(() => {
+    fetchUser()
+  }, [])
 
   useEffect(() => {
     const onKey = (e) => {
@@ -422,68 +442,54 @@ export default function AIAssistantUI() {
   const selected = conversations.find((c) => c.id === selectedId) || null
 
   return (
-    <div className="h-screen w-full bg-[#ffffff] text-[#0d0d0d] dark:bg-[#212121] dark:text-[#ececec]">
-      <div className="md:hidden sticky top-0 z-40 flex items-center gap-2 border-b border-zinc-200/60 bg-white/80 px-3 py-2 backdrop-blur dark:border-zinc-800 dark:bg-zinc-900/70">
-        <div className="ml-1 flex items-center gap-2 text-sm font-semibold tracking-tight">
-          <span className="inline-flex h-4 w-4 items-center justify-center">✱</span> Trishul AI
-        </div>
-        <div className="ml-auto flex items-center gap-2">
-          <GhostIconButton label="Schedule">
-            <Calendar className="h-4 w-4" />
-          </GhostIconButton>
-          <GhostIconButton label="Apps">
-            <LayoutGrid className="h-4 w-4" />
-          </GhostIconButton>
-          <GhostIconButton label="More">
-            <MoreHorizontal className="h-4 w-4" />
-          </GhostIconButton>
-          <ThemeToggle theme={theme} setTheme={setTheme} />
-        </div>
-      </div>
+    <div className="flex h-screen w-full overflow-hidden bg-white text-zinc-900 dark:bg-[#212121] dark:text-zinc-100">
+      <Sidebar
+        open={sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
+        theme={theme}
+        setTheme={setTheme}
+        collapsed={collapsed}
+        setCollapsed={setCollapsed}
+        sidebarCollapsed={sidebarCollapsed}
+        setSidebarCollapsed={setSidebarCollapsed}
+        conversations={conversations}
+        pinned={pinned}
+        recent={recent}
+        folders={folders}
+        folderCounts={folderCounts}
+        selectedId={selectedId}
+        onSelect={(id) => setSelectedId(id)}
+        togglePin={togglePin}
+        query={query}
+        setQuery={setQuery}
+        searchRef={searchRef}
+        createFolder={createFolder}
+        createNewChat={createNewChat}
+        templates={templates}
+        setTemplates={setTemplates}
+        onUseTemplate={handleUseTemplate}
+        onDeleteConversation={deleteConversation}
+        onRenameConversation={renameConversation}
+        user={user}
+        onUserUpdate={fetchUser}
+      />
 
-      <div className="mx-auto flex h-[calc(100vh-0px)] max-w-[1400px]">
-        <Sidebar
-          open={sidebarOpen}
-          onClose={() => setSidebarOpen(false)}
-          theme={theme}
-          setTheme={setTheme}
-          collapsed={collapsed}
-          setCollapsed={setCollapsed}
-          sidebarCollapsed={sidebarCollapsed}
-          setSidebarCollapsed={setSidebarCollapsed}
-          conversations={conversations}
-          pinned={pinned}
-          recent={recent}
-          folders={folders}
-          folderCounts={folderCounts}
-          selectedId={selectedId}
-          onSelect={(id) => setSelectedId(id)}
-          togglePin={togglePin}
-          query={query}
-          setQuery={setQuery}
-          searchRef={searchRef}
-          createFolder={createFolder}
+      <main className="relative flex min-w-0 flex-1 flex-col overflow-hidden">
+        <Header
           createNewChat={createNewChat}
-          templates={templates}
-          setTemplates={setTemplates}
-          onUseTemplate={handleUseTemplate}
-          onDeleteConversation={deleteConversation}
-          onRenameConversation={renameConversation}
+          sidebarCollapsed={sidebarCollapsed}
+          setSidebarOpen={setSidebarOpen}
         />
-
-        <main className="relative flex min-w-0 flex-1 flex-col">
-          <Header createNewChat={createNewChat} sidebarCollapsed={sidebarCollapsed} setSidebarOpen={setSidebarOpen} />
-          <ChatPane
-            ref={composerRef}
-            conversation={selected}
-            onSend={(content) => selected && sendMessage(selected.id, content)}
-            onEditMessage={(messageId, newContent) => selected && editMessage(selected.id, messageId, newContent)}
-            onResendMessage={(messageId) => selected && resendMessage(selected.id, messageId)}
-            isThinking={isThinking && thinkingConvId === selected?.id}
-            onPauseThinking={pauseThinking}
-          />
-        </main>
-      </div>
+        <ChatPane
+          ref={composerRef}
+          conversation={selected}
+          onSend={(content) => selected && sendMessage(selected.id, content)}
+          onEditMessage={(messageId, newContent) => selected && editMessage(selected.id, messageId, newContent)}
+          onResendMessage={(messageId) => selected && resendMessage(selected.id, messageId)}
+          isThinking={isThinking && thinkingConvId === selected?.id}
+          onPauseThinking={pauseThinking}
+        />
+      </main>
     </div>
   )
 }

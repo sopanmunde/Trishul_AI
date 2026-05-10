@@ -1,35 +1,17 @@
 "use client"
 
-import { useState, useRef, useEffect } from "react"
+import { useState } from "react"
 import { MoreHorizontal, Pin, Edit3, Trash2 } from "lucide-react"
-import { cls, timeAgo } from "./utils"
-import { motion, AnimatePresence } from "framer-motion"
+import { cls } from "./utils"
+import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover"
 
-export default function ConversationRow({ data, active, onSelect, onTogglePin, onDelete, onRename, showMeta }) {
-  const [showMenu, setShowMenu] = useState(false)
-  const menuRef = useRef(null)
-  const count = Array.isArray(data.messages) ? data.messages.length : data.messageCount
-
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (menuRef.current && !menuRef.current.contains(event.target)) {
-        setShowMenu(false)
-      }
-    }
-
-    if (showMenu) {
-      document.addEventListener("mousedown", handleClickOutside)
-    }
-
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside)
-    }
-  }, [showMenu])
+export default function ConversationRow({ data, active, onSelect, onTogglePin, onDelete, onRename }) {
+  const [open, setOpen] = useState(false)
 
   const handlePin = (e) => {
     e.stopPropagation()
     onTogglePin?.()
-    setShowMenu(false)
+    setOpen(false)
   }
 
   const handleRename = (e) => {
@@ -38,7 +20,7 @@ export default function ConversationRow({ data, active, onSelect, onTogglePin, o
     if (newName && newName.trim() && newName !== data.title) {
       onRename?.(data.id, newName.trim())
     }
-    setShowMenu(false)
+    setOpen(false)
   }
 
   const handleDelete = (e) => {
@@ -46,93 +28,88 @@ export default function ConversationRow({ data, active, onSelect, onTogglePin, o
     if (confirm(`Are you sure you want to delete "${data.title}"?`)) {
       onDelete?.(data.id)
     }
-    setShowMenu(false)
+    setOpen(false)
   }
 
   return (
-    <div className="group relative">
+    <div className="group relative px-1">
       <div
         role="button"
         tabIndex={0}
         onClick={onSelect}
         onKeyDown={(e) => {
-          if (e.key === 'Enter' || e.key === ' ') {
+          if (e.key === "Enter" || e.key === " ") {
             e.preventDefault()
-            onSelect(e)
+            onSelect()
           }
         }}
         className={cls(
-          "-mx-1 flex w-[calc(100%+8px)] items-center gap-2 rounded-lg px-2 py-2 text-left",
+          "relative flex w-full items-center gap-2 rounded-xl px-2.5 py-2 text-left transition-all duration-100",
           active
             ? "bg-zinc-200/80 text-zinc-900 dark:bg-zinc-800 dark:text-zinc-100"
-            : "text-zinc-700 hover:bg-zinc-200/60 dark:text-zinc-300 dark:hover:bg-zinc-800/60",
+            : "text-zinc-700 hover:bg-zinc-200/50 dark:text-zinc-400 dark:hover:bg-zinc-800/50",
         )}
-        title={data.title}
       >
-        <div className="min-w-0 flex-1 py-1">
-          <div className="flex items-center gap-2">
-            <span className="truncate text-sm text-zinc-800 dark:text-zinc-200">{data.title}</span>
-          </div>
+        {active && (
+          <div className="absolute left-0 top-1/2 h-4 w-0.5 -translate-y-1/2 rounded-full bg-violet-500 dark:bg-violet-400" />
+        )}
+        
+        <div className="min-w-0 flex-1 pl-1">
+          <span className="block truncate text-[13px] font-medium leading-snug">{data.title}</span>
         </div>
 
-        <div className="relative" ref={menuRef}>
-          <button
-            onClick={(e) => {
-              e.stopPropagation()
-              setShowMenu(!showMenu)
-            }}
-            className="rounded-md p-1 text-zinc-500 opacity-0 transition group-hover:opacity-100 hover:bg-black/10 dark:text-zinc-300 dark:hover:bg-[#2f2f2f]"
-            aria-label="Chat options"
+        <Popover open={open} onOpenChange={setOpen}>
+          <PopoverTrigger asChild>
+            <button
+              onClick={(e) => {
+                e.stopPropagation()
+                setOpen(true)
+              }}
+              className={cls(
+                "rounded-lg p-1 text-zinc-500 transition-all hover:bg-black/5 dark:text-zinc-400 dark:hover:bg-white/5",
+                open ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+              )}
+              aria-label="Chat options"
+            >
+              <MoreHorizontal className="h-4 w-4" />
+            </button>
+          </PopoverTrigger>
+          <PopoverContent 
+            side="right" 
+            align="start" 
+            className="w-40 p-1.5 rounded-2xl border-zinc-200/80 bg-white/95 shadow-2xl backdrop-blur-xl dark:border-white/[0.08] dark:bg-zinc-900/95"
           >
-            <MoreHorizontal className="h-4 w-4" />
-          </button>
-
-          <AnimatePresence>
-            {showMenu && (
-              <motion.div
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.95 }}
-                className="absolute right-0 top-full mt-1 w-36 rounded-xl border border-zinc-200 bg-white py-1 shadow-xl dark:border-zinc-700 dark:bg-zinc-900 z-[100]"
+            <div className="space-y-0.5">
+              <button
+                onClick={handlePin}
+                className="flex w-full items-center gap-2.5 rounded-xl px-2.5 py-2 text-left text-[13px] text-zinc-700 transition-colors hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-white/[0.06]"
               >
-                <button
-                  onClick={handlePin}
-                  className="w-full px-3 py-2 text-left text-xs text-zinc-700 hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-zinc-800 flex items-center gap-2 transition-colors"
-                >
-                  {data.pinned ? (
-                    <>
-                      <Pin className="h-3 w-3" />
-                      Unpin
-                    </>
-                  ) : (
-                    <>
-                      <Pin className="h-3 w-3" />
-                      Pin
-                    </>
-                  )}
-                </button>
-                <button
-                  onClick={handleRename}
-                  className="w-full px-3 py-2 text-left text-xs text-zinc-700 hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-zinc-800 flex items-center gap-2 transition-colors"
-                >
-                  <Edit3 className="h-3 w-3" />
-                  Rename
-                </button>
-                <button
-                  onClick={handleDelete}
-                  className="w-full px-3 py-2 text-left text-xs text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center gap-2 transition-colors border-t border-zinc-100 dark:border-zinc-800 mt-0.5"
-                >
-                  <Trash2 className="h-3 w-3" />
-                  Delete
-                </button>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
+                <Pin className="h-3.5 w-3.5" />
+                {data.pinned ? "Unpin" : "Pin"}
+              </button>
+              <button
+                onClick={handleRename}
+                className="flex w-full items-center gap-2.5 rounded-xl px-2.5 py-2 text-left text-[13px] text-zinc-700 transition-colors hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-white/[0.06]"
+              >
+                <Edit3 className="h-3.5 w-3.5" />
+                Rename
+              </button>
+              <div className="my-1 h-px bg-zinc-100 dark:bg-white/[0.05]" />
+              <button
+                onClick={handleDelete}
+                className="flex w-full items-center gap-2.5 rounded-xl px-2.5 py-2 text-left text-[13px] text-red-600 transition-colors hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-500/10"
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+                Delete
+              </button>
+            </div>
+          </PopoverContent>
+        </Popover>
       </div>
 
-      <div className="pointer-events-none absolute left-[calc(100%+6px)] top-1 hidden w-64 rounded-xl border border-zinc-200 bg-white p-3 text-xs text-zinc-700 shadow-lg dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-200 md:group-hover:block">
-        <div className="line-clamp-6 whitespace-pre-wrap">{data.preview}</div>
+      {/* Preview Tooltip on hover (desktop only) */}
+      <div className="pointer-events-none absolute left-[calc(100%+8px)] top-1 hidden w-64 rounded-2xl border border-zinc-200/80 bg-white/95 p-3 text-[12px] text-zinc-600 shadow-2xl backdrop-blur-xl dark:border-white/[0.08] dark:bg-zinc-900/95 dark:text-zinc-300 md:group-hover:block z-[60]">
+        <div className="line-clamp-6 leading-relaxed">{data.preview}</div>
       </div>
     </div>
   )
