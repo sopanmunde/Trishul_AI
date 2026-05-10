@@ -9,16 +9,16 @@ export default function Message({ role, content, children }) {
   return (
     <div className={cls("flex gap-3", isUser ? "justify-end" : "justify-start")}>
       {!isUser && (
-        <div className="mt-0.5 grid h-7 w-7 place-items-center rounded-full border border-black/10 dark:border-white/10 bg-white text-[12px] text-black shadow-sm dark:bg-[#212121] dark:text-white shrink-0">
+        <div className="mt-1 grid h-7 w-7 place-items-center rounded-lg border border-zinc-200 bg-white text-[12px] text-zinc-900 shadow-sm dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100 shrink-0">
           ✱
         </div>
       )}
       <div
         className={cls(
-          "max-w-[80%] px-4 py-3 text-sm",
+          "max-w-[82%] px-4 py-3 text-sm",
           isUser
-            ? "rounded-2xl bg-[#f4f4f4] text-[#0d0d0d] dark:bg-[#2f2f2f] dark:text-[#ececec]"
-            : "bg-transparent text-[#0d0d0d] dark:text-[#ececec] prose dark:prose-invert prose-sm max-w-none prose-pre:bg-[#2f2f2f] prose-pre:border-none",
+            ? "rounded-2xl bg-zinc-100 text-zinc-900 dark:bg-zinc-800 dark:text-zinc-100"
+            : "rounded-xl bg-transparent text-zinc-900 dark:text-zinc-100 prose dark:prose-invert prose-sm max-w-none prose-pre:bg-zinc-900 dark:prose-pre:bg-zinc-950 prose-pre:border prose-pre:border-zinc-200 dark:prose-pre:border-zinc-700",
         )}
       >
         {content !== undefined ? (

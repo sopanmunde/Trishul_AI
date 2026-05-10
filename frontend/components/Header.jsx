@@ -15,7 +15,7 @@ export default function Header({ createNewChat, sidebarCollapsed, setSidebarOpen
   ]
 
   return (
-    <div className="sticky top-0 z-30 flex items-center gap-2 border-b border-transparent bg-[#ffffff]/80 px-4 py-3 backdrop-blur dark:border-transparent dark:bg-[#212121]/70">
+    <div className="sticky top-0 z-30 flex items-center gap-2 border-b border-zinc-200 bg-white/90 px-4 py-3 backdrop-blur-md dark:border-zinc-800/80 dark:bg-[#212121]/90">
       {sidebarCollapsed && (
         <button
           onClick={() => setSidebarOpen(true)}
@@ -29,7 +29,7 @@ export default function Header({ createNewChat, sidebarCollapsed, setSidebarOpen
       <div className="hidden md:flex relative">
         <button
           onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-          className="inline-flex items-center gap-2 rounded-full border border-black/10 bg-transparent px-3 py-2 text-sm font-semibold tracking-tight hover:bg-black/5 focus-visible:outline-none dark:border-white/10 dark:bg-transparent dark:hover:bg-white/5 text-zinc-900 dark:text-zinc-100"
+          className="inline-flex items-center gap-2 rounded-lg border border-zinc-300 bg-white px-3 py-1.5 text-sm font-semibold tracking-tight shadow-sm hover:bg-zinc-50 focus-visible:outline-none dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100 dark:hover:bg-zinc-700 text-zinc-800"
         >
           {typeof chatbots.find((bot) => bot.name === selectedBot)?.icon === "string" ? (
             <span className="text-sm">{chatbots.find((bot) => bot.name === selectedBot)?.icon}</span>
@@ -41,7 +41,7 @@ export default function Header({ createNewChat, sidebarCollapsed, setSidebarOpen
         </button>
 
         {isDropdownOpen && (
-          <div className="absolute top-full left-0 mt-1 w-48 rounded-lg border border-black/10 bg-white shadow-lg dark:border-white/10 dark:bg-[#2f2f2f] z-50">
+          <div className="absolute top-full left-0 mt-1 w-52 rounded-xl border border-zinc-200 bg-white py-1 shadow-xl dark:border-zinc-700 dark:bg-zinc-900 z-50">
             {chatbots.map((bot) => (
               <button
                 key={bot.name}
@@ -49,7 +49,7 @@ export default function Header({ createNewChat, sidebarCollapsed, setSidebarOpen
                   setSelectedBot(bot.name)
                   setIsDropdownOpen(false)
                 }}
-                className="w-full flex items-center gap-2 px-3 py-2 text-sm text-left hover:bg-black/5 dark:hover:bg-white/5 first:rounded-t-lg last:rounded-b-lg text-zinc-900 dark:text-zinc-100"
+                className="w-full flex items-center gap-2 px-3 py-2.5 text-sm text-left hover:bg-zinc-50 dark:hover:bg-zinc-800 first:rounded-t-xl last:rounded-b-xl text-zinc-800 dark:text-zinc-100 transition-colors"
               >
                 {typeof bot.icon === "string" ? <span className="text-sm">{bot.icon}</span> : bot.icon}
                 {bot.name}

@@ -73,19 +73,20 @@ const ChatPane = forwardRef(function ChatPane(
   }
 
   return (
-    <div className="flex h-full min-h-0 flex-1 flex-col bg-[#ffffff] dark:bg-[#212121]">
-      <div className="flex-1 space-y-5 overflow-y-auto px-4 py-6 md:px-[10%] lg:px-[15%]">
+    <div className="flex h-full min-h-0 flex-1 flex-col bg-white dark:bg-[#212121]">
+      <div className="flex-1 overflow-y-auto px-4 py-8 md:px-[8%] lg:px-[14%]">
         {messages.length === 0 ? (
-          <div className="flex h-full flex-col items-center justify-center text-center">
-            <div className="mb-4 grid h-12 w-12 place-items-center rounded-full bg-black text-white dark:bg-white dark:text-black shadow-sm">
-              <span className="text-xl">✱</span>
+          <div className="flex h-full flex-col items-center justify-center text-center py-12">
+            <div className="mb-5 grid h-14 w-14 place-items-center rounded-2xl bg-zinc-900 text-white shadow-lg dark:bg-white dark:text-zinc-900">
+              <span className="text-2xl">✱</span>
             </div>
-            <h2 className="mb-2 text-2xl font-semibold">How can I help you today?</h2>
+            <h2 className="mb-1 text-3xl font-semibold text-zinc-900 dark:text-zinc-100">How can I help you?</h2>
+            <p className="text-sm text-zinc-500 dark:text-zinc-400">Ask me anything — I&apos;m here to help.</p>
           </div>
         ) : (
           <>
             {messages.map((m) => (
-              <div key={m.id} className="space-y-2">
+              <div key={m.id} className="space-y-3">
                 {editingId === m.id ? (
                   <div className={cls("rounded-2xl border p-2", "border-zinc-200 dark:border-zinc-800")}>
                     <textarea

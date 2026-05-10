@@ -64,14 +64,14 @@ export default function ConversationRow({ data, active, onSelect, onTogglePin, o
         className={cls(
           "-mx-1 flex w-[calc(100%+8px)] items-center gap-2 rounded-lg px-2 py-2 text-left",
           active
-            ? "bg-[#ececec] text-[#0d0d0d] dark:bg-[#212121] dark:text-[#ececec]"
-            : "hover:bg-black/5 dark:hover:bg-[#212121]",
+            ? "bg-zinc-200/80 text-zinc-900 dark:bg-zinc-800 dark:text-zinc-100"
+            : "text-zinc-700 hover:bg-zinc-200/60 dark:text-zinc-300 dark:hover:bg-zinc-800/60",
         )}
         title={data.title}
       >
         <div className="min-w-0 flex-1 py-1">
           <div className="flex items-center gap-2">
-            <span className="truncate text-sm tracking-tight text-zinc-700 dark:text-[#ececec]">{data.title}</span>
+            <span className="truncate text-sm text-zinc-800 dark:text-zinc-200">{data.title}</span>
           </div>
         </div>
 
@@ -93,11 +93,11 @@ export default function ConversationRow({ data, active, onSelect, onTogglePin, o
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.95 }}
-                className="absolute right-0 top-full mt-1 w-36 rounded-lg border border-black/10 bg-white py-1 shadow-lg dark:border-white/10 dark:bg-[#2f2f2f] z-[100]"
+                className="absolute right-0 top-full mt-1 w-36 rounded-xl border border-zinc-200 bg-white py-1 shadow-xl dark:border-zinc-700 dark:bg-zinc-900 z-[100]"
               >
                 <button
                   onClick={handlePin}
-                  className="w-full px-3 py-1.5 text-left text-xs hover:bg-black/5 dark:hover:bg-white/5 flex items-center gap-2"
+                  className="w-full px-3 py-2 text-left text-xs text-zinc-700 hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-zinc-800 flex items-center gap-2 transition-colors"
                 >
                   {data.pinned ? (
                     <>
@@ -113,14 +113,14 @@ export default function ConversationRow({ data, active, onSelect, onTogglePin, o
                 </button>
                 <button
                   onClick={handleRename}
-                  className="w-full px-3 py-1.5 text-left text-xs hover:bg-black/5 dark:hover:bg-white/5 flex items-center gap-2"
+                  className="w-full px-3 py-2 text-left text-xs text-zinc-700 hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-zinc-800 flex items-center gap-2 transition-colors"
                 >
                   <Edit3 className="h-3 w-3" />
                   Rename
                 </button>
                 <button
                   onClick={handleDelete}
-                  className="w-full px-3 py-1.5 text-left text-xs text-red-600 hover:bg-black/5 dark:hover:bg-white/5 flex items-center gap-2"
+                  className="w-full px-3 py-2 text-left text-xs text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center gap-2 transition-colors border-t border-zinc-100 dark:border-zinc-800 mt-0.5"
                 >
                   <Trash2 className="h-3 w-3" />
                   Delete

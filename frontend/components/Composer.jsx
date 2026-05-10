@@ -69,10 +69,10 @@ const Composer = forwardRef(function Composer({ onSend, busy }, ref) {
   const hasContent = value.trim().length > 0
 
   return (
-    <div className="p-4 pb-6">
+    <div className="px-4 pb-6 pt-2">
       <div
         className={cls(
-          "mx-auto flex flex-col rounded-3xl bg-[#f4f4f4] dark:bg-[#2f2f2f] transition-all duration-200",
+          "mx-auto flex flex-col rounded-2xl border border-zinc-300 bg-white shadow-md dark:border-zinc-700 dark:bg-[#2f2f2f] transition-all duration-200",
           "max-w-3xl",
         )}
       >
@@ -85,8 +85,8 @@ const Composer = forwardRef(function Composer({ onSend, busy }, ref) {
             placeholder="How can I help you today?"
             rows={1}
             className={cls(
-              "w-full resize-none bg-transparent text-sm outline-none placeholder:text-[#676767] dark:placeholder:text-[#b4b4b4] transition-all duration-200",
-              "min-h-[24px] text-left leading-6 text-[#0d0d0d] dark:text-[#ececec]",
+              "w-full resize-none bg-transparent text-sm outline-none placeholder:text-zinc-400 dark:placeholder:text-zinc-500 transition-all duration-200",
+              "min-h-[24px] text-left leading-6 text-zinc-900 dark:text-zinc-100",
             )}
             onKeyDown={(e) => {
               if (e.key === "Enter" && !e.shiftKey) {
@@ -101,7 +101,7 @@ const Composer = forwardRef(function Composer({ onSend, busy }, ref) {
         <div className="flex items-center justify-between px-3 pb-3">
           <ComposerActionsPopover>
             <button
-              className="inline-flex shrink-0 items-center justify-center rounded-full p-2 text-zinc-500 hover:bg-zinc-100 hover:text-zinc-700 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-300 transition-colors"
+              className="inline-flex shrink-0 items-center justify-center rounded-full p-2 text-zinc-500 hover:bg-zinc-100 hover:text-zinc-700 dark:text-zinc-400 dark:hover:bg-zinc-600/50 dark:hover:text-zinc-300 transition-colors"
               title="Add attachment"
             >
               <Plus className="h-5 w-5" />
@@ -110,7 +110,7 @@ const Composer = forwardRef(function Composer({ onSend, busy }, ref) {
 
           <div className="flex items-center gap-1 shrink-0">
             <button
-              className="inline-flex items-center justify-center rounded-full p-2 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-600 dark:hover:bg-zinc-800 dark:hover:text-zinc-300 transition-colors"
+              className="inline-flex items-center justify-center rounded-full p-2 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-600 dark:hover:bg-zinc-600/50 dark:hover:text-zinc-300 transition-colors"
               title="Voice input"
             >
               <Mic className="h-5 w-5" />
@@ -121,8 +121,8 @@ const Composer = forwardRef(function Composer({ onSend, busy }, ref) {
               className={cls(
                 "inline-flex shrink-0 items-center justify-center rounded-full p-2.5 transition-colors",
                 hasContent
-                  ? "bg-black text-white dark:bg-white dark:text-black"
-                  : "bg-[#e5e5e5] text-white dark:bg-[#424242] dark:text-[#2f2f2f] cursor-not-allowed",
+                  ? "bg-zinc-900 text-white hover:bg-zinc-700 dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-200"
+                  : "bg-zinc-200 text-zinc-400 dark:bg-zinc-600/40 dark:text-zinc-500 cursor-not-allowed",
               )}
             >
               {sending || busy ? <Loader2 className="h-5 w-5 animate-spin" /> : <Send className="h-5 w-5" />}
@@ -131,8 +131,8 @@ const Composer = forwardRef(function Composer({ onSend, busy }, ref) {
         </div>
       </div>
 
-      <div className="mx-auto mt-2 max-w-3xl px-1 text-center text-[11px] text-zinc-400 dark:text-zinc-500">
-        AI can make mistakes. Check important info.
+      <div className="mx-auto mt-2 max-w-3xl px-1 text-center text-[11px] text-zinc-400 dark:text-zinc-600">
+        Trishul AI can make mistakes. Check important info.
       </div>
     </div>
   )
