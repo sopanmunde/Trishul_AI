@@ -7,18 +7,10 @@ export default function SidebarSection({ icon, title, children, collapsed, onTog
     <section>
       <button
         onClick={onToggle}
-        className="sticky top-0 z-10 -mx-2 mb-1 flex w-[calc(100%+16px)] items-center gap-2 border-y border-transparent bg-gradient-to-b from-white to-white/70 px-2 py-2 text-[11px] font-semibold tracking-wide text-zinc-500 backdrop-blur hover:text-zinc-700 dark:from-zinc-900 dark:to-zinc-900/70 dark:hover:text-zinc-300"
+        className="w-full text-left flex items-center px-2 pt-4 pb-1 text-[11px] font-semibold text-zinc-500 hover:text-zinc-700 dark:text-[#8e8ea0] dark:hover:text-zinc-300 transition-colors"
         aria-expanded={!collapsed}
       >
-        <span className="mr-1" aria-hidden>
-          {collapsed ? <ChevronRight className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
-        </span>
-        <span className="flex items-center gap-2">
-          <span className="opacity-70" aria-hidden>
-            {icon}
-          </span>
-          {title}
-        </span>
+        {title}
       </button>
       <AnimatePresence initial={false}>
         {!collapsed && (

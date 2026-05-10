@@ -40,19 +40,19 @@ export default function SettingsPopover({ children }) {
                 setOpen(false)
                 setIsProfileOpen(true)
               }}
-              className="flex items-center gap-3 w-full px-3 py-2.5 text-sm text-left hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors"
+              className="flex items-center gap-3 w-full px-3 py-2.5 text-sm text-left hover:bg-black/5 dark:hover:bg-white/5 rounded-lg transition-colors"
             >
               <Settings className="h-4 w-4 text-zinc-500" />
               <span>Settings</span>
             </button>
 
-            <button className="flex items-center gap-3 w-full px-3 py-2.5 text-sm text-left hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors">
+            <button className="flex items-center gap-3 w-full px-3 py-2.5 text-sm text-left hover:bg-black/5 dark:hover:bg-white/5 rounded-lg transition-colors">
               <Globe className="h-4 w-4 text-zinc-500" />
               <span>Language</span>
               <ChevronRight className="h-4 w-4 ml-auto text-zinc-400" />
             </button>
 
-            <button className="flex items-center gap-3 w-full px-3 py-2.5 text-sm text-left hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors">
+            <button className="flex items-center gap-3 w-full px-3 py-2.5 text-sm text-left hover:bg-black/5 dark:hover:bg-white/5 rounded-lg transition-colors">
               <HelpCircle className="h-4 w-4 text-zinc-500" />
               <span>Get help</span>
             </button>
@@ -61,12 +61,12 @@ export default function SettingsPopover({ children }) {
           <div className="my-2 border-t border-zinc-200 dark:border-zinc-700" />
 
           <div className="space-y-0.5">
-            <button className="flex items-center gap-3 w-full px-3 py-2.5 text-sm text-left hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors">
+            <button className="flex items-center gap-3 w-full px-3 py-2.5 text-sm text-left hover:bg-black/5 dark:hover:bg-white/5 rounded-lg transition-colors">
               <Crown className="h-4 w-4 text-zinc-500" />
               <span>Upgrade plan</span>
             </button>
 
-            <button className="flex items-center gap-3 w-full px-3 py-2.5 text-sm text-left hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors">
+            <button className="flex items-center gap-3 w-full px-3 py-2.5 text-sm text-left hover:bg-black/5 dark:hover:bg-white/5 rounded-lg transition-colors">
               <BookOpen className="h-4 w-4 text-zinc-500" />
               <span>Learn more</span>
               <ChevronRight className="h-4 w-4 ml-auto text-zinc-400" />
@@ -75,7 +75,15 @@ export default function SettingsPopover({ children }) {
 
           <div className="my-2 border-t border-zinc-200 dark:border-zinc-700" />
 
-          <button className="flex items-center gap-3 w-full px-3 py-2.5 text-sm text-left hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors text-red-600 dark:text-red-400">
+          <button 
+            onClick={() => {
+              localStorage.removeItem("token")
+              // Also clear the cookie used by middleware
+              document.cookie = "auth_token=; path=/; max-age=0"
+              window.location.href = "/login"
+            }}
+            className="flex items-center gap-3 w-full px-3 py-2.5 text-sm text-left hover:bg-black/5 dark:hover:bg-white/5 rounded-lg transition-colors text-red-600 dark:text-red-400"
+          >
             <LogOut className="h-4 w-4" />
             <span>Log out</span>
           </button>

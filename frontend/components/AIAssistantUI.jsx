@@ -41,6 +41,16 @@ export default function AIAssistantUI() {
     } catch {}
   }, [])
 
+  // Auth guard: redirect to login if no token is present
+  useEffect(() => {
+    try {
+      const token = localStorage.getItem("token")
+      if (!token) {
+        window.location.href = "/login"
+      }
+    } catch {}
+  }, [])
+
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [collapsed, setCollapsed] = useState(() => {
     try {

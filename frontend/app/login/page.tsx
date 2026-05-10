@@ -68,6 +68,8 @@ const handleSubmit = async (e: React.FormEvent) => {
     }
 
     localStorage.setItem("token", data.access_token)
+    // Also set a cookie so the Next.js middleware can read it for route protection
+    document.cookie = `auth_token=${data.access_token}; path=/; SameSite=Lax; max-age=${60 * 60 * 24 * 7}`
 
     router.push("/dashboard")
   } catch (err: any) {

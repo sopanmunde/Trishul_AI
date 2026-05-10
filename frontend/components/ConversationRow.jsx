@@ -69,13 +69,10 @@ export default function ConversationRow({ data, active, onSelect, onTogglePin, o
         )}
         title={data.title}
       >
-        <div className="min-w-0 flex-1">
+        <div className="min-w-0 flex-1 py-1">
           <div className="flex items-center gap-2">
-            {data.pinned && <Pin className="h-3 w-3 shrink-0 text-zinc-500 dark:text-zinc-400" />}
-            <span className="truncate text-sm font-medium tracking-tight">{data.title}</span>
-            <span className="shrink-0 text-[11px] text-zinc-500 dark:text-zinc-400">{timeAgo(data.updatedAt)}</span>
+            <span className="truncate text-sm tracking-tight text-zinc-700 dark:text-[#ececec]">{data.title}</span>
           </div>
-          {showMeta && <div className="mt-0.5 text-[11px] text-zinc-500 dark:text-zinc-400">{count} messages</div>}
         </div>
 
         <div className="relative" ref={menuRef}>
@@ -84,7 +81,7 @@ export default function ConversationRow({ data, active, onSelect, onTogglePin, o
               e.stopPropagation()
               setShowMenu(!showMenu)
             }}
-            className="rounded-md p-1 text-zinc-500 opacity-0 transition group-hover:opacity-100 hover:bg-zinc-200/50 dark:text-zinc-300 dark:hover:bg-zinc-700/60"
+            className="rounded-md p-1 text-zinc-500 opacity-0 transition group-hover:opacity-100 hover:bg-black/10 dark:text-zinc-300 dark:hover:bg-[#2f2f2f]"
             aria-label="Chat options"
           >
             <MoreHorizontal className="h-4 w-4" />
@@ -96,11 +93,11 @@ export default function ConversationRow({ data, active, onSelect, onTogglePin, o
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.95 }}
-                className="absolute right-0 top-full mt-1 w-36 rounded-lg border border-zinc-200 bg-white py-1 shadow-lg dark:border-zinc-800 dark:bg-zinc-900 z-[100]"
+                className="absolute right-0 top-full mt-1 w-36 rounded-lg border border-black/10 bg-white py-1 shadow-lg dark:border-white/10 dark:bg-[#2f2f2f] z-[100]"
               >
                 <button
                   onClick={handlePin}
-                  className="w-full px-3 py-1.5 text-left text-xs hover:bg-zinc-100 dark:hover:bg-zinc-800 flex items-center gap-2"
+                  className="w-full px-3 py-1.5 text-left text-xs hover:bg-black/5 dark:hover:bg-white/5 flex items-center gap-2"
                 >
                   {data.pinned ? (
                     <>
@@ -116,14 +113,14 @@ export default function ConversationRow({ data, active, onSelect, onTogglePin, o
                 </button>
                 <button
                   onClick={handleRename}
-                  className="w-full px-3 py-1.5 text-left text-xs hover:bg-zinc-100 dark:hover:bg-zinc-800 flex items-center gap-2"
+                  className="w-full px-3 py-1.5 text-left text-xs hover:bg-black/5 dark:hover:bg-white/5 flex items-center gap-2"
                 >
                   <Edit3 className="h-3 w-3" />
                   Rename
                 </button>
                 <button
                   onClick={handleDelete}
-                  className="w-full px-3 py-1.5 text-left text-xs text-red-600 hover:bg-zinc-100 dark:hover:bg-zinc-800 flex items-center gap-2"
+                  className="w-full px-3 py-1.5 text-left text-xs text-red-600 hover:bg-black/5 dark:hover:bg-white/5 flex items-center gap-2"
                 >
                   <Trash2 className="h-3 w-3" />
                   Delete

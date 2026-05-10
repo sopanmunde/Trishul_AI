@@ -84,31 +84,31 @@ export default function TemplateRow({ template, onUseTemplate, onEditTemplate, o
                   initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.95 }}
-                  className="absolute right-0 top-full mt-1 w-36 rounded-lg border border-zinc-200 bg-white py-1 shadow-lg dark:border-zinc-800 dark:bg-zinc-900 z-[100]"
+                  className="absolute right-0 top-full mt-1 w-36 rounded-lg border border-black/10 bg-white py-1 shadow-lg dark:border-white/10 dark:bg-[#2f2f2f] z-[100]"
                 >
                   <button
                     onClick={handleUse}
-                    className="w-full px-3 py-1.5 text-left text-xs hover:bg-zinc-100 dark:hover:bg-zinc-800 flex items-center gap-2"
+                    className="w-full px-3 py-1.5 text-left text-xs hover:bg-black/5 dark:hover:bg-white/5 flex items-center gap-2"
                   >
                     <Copy className="h-3 w-3" />
                     Use Template
                   </button>
                   <button
                     onClick={handleEdit}
-                    className="w-full px-3 py-1.5 text-left text-xs hover:bg-zinc-100 dark:hover:bg-zinc-800 flex items-center gap-2"
+                    className="w-full px-3 py-1.5 text-left text-xs hover:bg-black/5 dark:hover:bg-white/5 flex items-center gap-2"
                   >
                     <Edit3 className="h-3 w-3" />
                     Edit
                   </button>
                   <button
                     onClick={handleRename}
-                    className="w-full px-3 py-1.5 text-left text-xs hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                    className="w-full px-3 py-1.5 text-left text-xs hover:bg-black/5 dark:hover:bg-white/5"
                   >
                     Rename
                   </button>
                   <button
                     onClick={handleDelete}
-                    className="w-full px-3 py-1.5 text-left text-xs text-red-600 hover:bg-zinc-100 dark:hover:bg-zinc-800 flex items-center gap-2"
+                    className="w-full px-3 py-1.5 text-left text-xs text-red-600 hover:bg-black/5 dark:hover:bg-white/5 flex items-center gap-2"
                   >
                     <Trash2 className="h-3 w-3" />
                     Delete
