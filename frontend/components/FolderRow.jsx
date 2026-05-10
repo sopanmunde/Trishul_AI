@@ -14,6 +14,8 @@ export default function FolderRow({
   togglePin,
   onDeleteFolder,
   onRenameFolder,
+  onDeleteConversation,
+  onRenameConversation,
 }) {
   const [isExpanded, setIsExpanded] = useState(false)
   const [showMenu, setShowMenu] = useState(false)
@@ -60,7 +62,7 @@ export default function FolderRow({
 
   return (
     <div className="group">
-      <div className="flex items-center justify-between rounded-lg px-2 py-2 text-sm hover:bg-zinc-100 dark:hover:bg-zinc-800">
+      <div className="flex items-center justify-between rounded-lg px-2 py-2 text-sm hover:bg-black/5 dark:hover:bg-[#212121]">
         <button onClick={handleToggle} className="flex items-center gap-2 flex-1 text-left">
           {isExpanded ? (
             <ChevronDown className="h-4 w-4 text-zinc-500" />
@@ -72,7 +74,7 @@ export default function FolderRow({
         </button>
 
         <div className="flex items-center gap-1">
-          <span className="rounded-md bg-zinc-100 px-1.5 py-0.5 text-[11px] text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300">
+          <span className="rounded-md bg-black/5 px-1.5 py-0.5 text-[11px] text-zinc-600 dark:bg-white/5 dark:text-zinc-300">
             {count}
           </span>
 
@@ -82,7 +84,7 @@ export default function FolderRow({
                 e.stopPropagation()
                 setShowMenu(!showMenu)
               }}
-              className="opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-opacity"
+              className="opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-black/10 dark:hover:bg-[#2f2f2f] transition-opacity"
             >
               <MoreHorizontal className="h-3 w-3" />
             </button>
@@ -130,6 +132,8 @@ export default function FolderRow({
                   active={conversation.id === selectedId}
                   onSelect={() => onSelect(conversation.id)}
                   onTogglePin={() => togglePin(conversation.id)}
+                  onDelete={onDeleteConversation}
+                  onRename={onRenameConversation}
                   showMeta
                 />
               ))}

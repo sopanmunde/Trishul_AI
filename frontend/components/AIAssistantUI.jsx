@@ -215,6 +215,43 @@ export default function AIAssistantUI() {
     }
   }
 
+  async function deleteConversation(id) {
+    const token = localStorage.getItem("token")
+    if (!token) return
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/conversations/${id}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      if (res.ok) {
+        setConversations(prev => prev.filter(c => c.id !== id))
+        if (selectedId === id) setSelectedId(null)
+      }
+    } catch (err) {
+      console.error("Failed to delete conversation", err)
+    }
+  }
+
+  async function renameConversation(id, newTitle) {
+    const token = localStorage.getItem("token")
+    if (!token) return
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/conversations/${id}`, {
+        method: "PUT",
+        headers: { 
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}` 
+        },
+        body: JSON.stringify({ title: newTitle })
+      })
+      if (res.ok) {
+        setConversations(prev => prev.map(c => c.id === id ? { ...c, title: newTitle, updatedAt: new Date().toISOString() } : c))
+      }
+    } catch (err) {
+      console.error("Failed to rename conversation", err)
+    }
+  }
+
   function createFolder() {
     const name = prompt("Folder name")
     if (!name) return
@@ -227,6 +264,13 @@ export default function AIAssistantUI() {
     if (!content.trim()) return;
     const now = new Date().toISOString();
     const userMsg = { id: Math.random().toString(36).slice(2), role: "user", content, createdAt: now };
+
+    const targetConv = conversations.find(c => c.id === convId);
+    if (targetConv && targetConv.title === "New Chat") {
+      let newTitle = content.trim().split(/\s+/).slice(0, 5).join(" ");
+      if (newTitle.length < content.trim().length) newTitle += "...";
+      renameConversation(convId, newTitle);
+    }
 
     // Initialize the assistant message with empty content to stream into
     const asstMsgId = Math.random().toString(36).slice(2);
@@ -368,7 +412,7 @@ export default function AIAssistantUI() {
   const selected = conversations.find((c) => c.id === selectedId) || null
 
   return (
-    <div className="h-screen w-full bg-zinc-50 text-zinc-900 dark:bg-zinc-950 dark:text-zinc-100">
+    <div className="h-screen w-full bg-[#ffffff] text-[#0d0d0d] dark:bg-[#212121] dark:text-[#ececec]">
       <div className="md:hidden sticky top-0 z-40 flex items-center gap-2 border-b border-zinc-200/60 bg-white/80 px-3 py-2 backdrop-blur dark:border-zinc-800 dark:bg-zinc-900/70">
         <div className="ml-1 flex items-center gap-2 text-sm font-semibold tracking-tight">
           <span className="inline-flex h-4 w-4 items-center justify-center">✱</span> Trishul AI
@@ -413,6 +457,8 @@ export default function AIAssistantUI() {
           templates={templates}
           setTemplates={setTemplates}
           onUseTemplate={handleUseTemplate}
+          onDeleteConversation={deleteConversation}
+          onRenameConversation={renameConversation}
         />
 
         <main className="relative flex min-w-0 flex-1 flex-col">

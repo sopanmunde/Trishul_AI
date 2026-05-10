@@ -49,15 +49,39 @@ export default function Sidebar({
   onUseTemplate = () => {},
   sidebarCollapsed = false,
   setSidebarCollapsed = () => {},
+  onDeleteConversation = () => {},
+  onRenameConversation = () => {},
 }) {
   const [showCreateFolderModal, setShowCreateFolderModal] = useState(false)
   const [showCreateTemplateModal, setShowCreateTemplateModal] = useState(false)
   const [editingTemplate, setEditingTemplate] = useState(null)
   const [showSearchModal, setShowSearchModal] = useState(false)
   const [mounted, setMounted] = useState(false)
+  const [user, setUser] = useState(null)
 
   useEffect(() => {
     setMounted(true)
+    const fetchUser = async () => {
+      try {
+        const token = localStorage.getItem("token")
+        if (!token) return
+        const apiUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000/api"
+        // Sometimes the NEXT_PUBLIC_API_BASE_URL contains /api, handle it gracefully
+        const url = apiUrl.endsWith("/api") ? `${apiUrl}/me` : `${apiUrl.replace(/\/$/, "")}/api/me`
+        const res = await fetch(url, {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        })
+        if (res.ok) {
+          const data = await res.json()
+          setUser(data)
+        }
+      } catch (err) {
+        console.error("Failed to fetch user:", err)
+      }
+    }
+    fetchUser()
   }, [])
 
   const handleSearchClick = () => {
@@ -229,11 +253,11 @@ export default function Sidebar({
             exit={{ x: -340 }}
             transition={{ type: "spring", stiffness: 260, damping: 28 }}
             className={cls(
-              "z-50 flex h-full w-80 shrink-0 flex-col border-r border-zinc-200/60 bg-white dark:border-zinc-800 dark:bg-zinc-900",
+              "z-50 flex h-full w-80 shrink-0 flex-col bg-[#f9f9f9] dark:bg-[#171717]",
               "fixed inset-y-0 left-0 md:static md:translate-x-0",
             )}
           >
-            <div className="flex items-center gap-2 border-b border-zinc-200/60 px-3 py-3 dark:border-zinc-800">
+            <div className="flex items-center gap-2 px-3 py-3">
               <div className="flex items-center gap-2">
                 <div className="grid h-8 w-8 place-items-center rounded-xl bg-gradient-to-br from-blue-500 to-indigo-500 text-white shadow-sm dark:from-zinc-200 dark:to-zinc-300 dark:text-zinc-900">
                   <Asterisk className="h-4 w-4" />
@@ -275,7 +299,7 @@ export default function Sidebar({
                   placeholder="Search…"
                   onClick={() => setShowSearchModal(true)}
                   onFocus={() => setShowSearchModal(true)}
-                  className="w-full rounded-full border border-zinc-200 bg-white py-2 pl-9 pr-3 text-sm outline-none ring-0 placeholder:text-zinc-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 dark:border-zinc-800 dark:bg-zinc-950/50"
+                  className="w-full rounded-full border border-black/10 bg-transparent py-2 pl-9 pr-3 text-sm outline-none ring-0 placeholder:text-zinc-400 focus:border-black/20 dark:border-white/10 dark:focus:border-white/20"
                 />
               </div>
             </div>
@@ -283,7 +307,7 @@ export default function Sidebar({
             <div className="px-3 pt-3">
               <button
                 onClick={createNewChat}
-                className="flex w-full items-center justify-center gap-2 rounded-full bg-zinc-900 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-zinc-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:bg-white dark:text-zinc-900"
+                className="flex w-full items-center justify-center gap-2 rounded-lg bg-transparent border border-black/10 px-4 py-2 text-sm font-medium text-black transition hover:bg-black/5 focus-visible:outline-none dark:border-white/10 dark:text-white dark:hover:bg-white/5"
                 title="New Chat (⌘N)"
               >
                 <Plus className="h-4 w-4" /> Start New Chat
@@ -309,6 +333,8 @@ export default function Sidebar({
                       active={c.id === selectedId}
                       onSelect={() => onSelect(c.id)}
                       onTogglePin={() => togglePin(c.id)}
+                      onDelete={onDeleteConversation}
+                      onRename={onRenameConversation}
                     />
                   ))
                 )}
@@ -332,6 +358,8 @@ export default function Sidebar({
                       active={c.id === selectedId}
                       onSelect={() => onSelect(c.id)}
                       onTogglePin={() => togglePin(c.id)}
+                      onDelete={onDeleteConversation}
+                      onRename={onRenameConversation}
                       showMeta
                     />
                   ))
@@ -363,6 +391,8 @@ export default function Sidebar({
                       togglePin={togglePin}
                       onDeleteFolder={handleDeleteFolder}
                       onRenameFolder={handleRenameFolder}
+                      onDeleteConversation={onDeleteConversation}
+                      onRenameConversation={onRenameConversation}
                     />
                   ))}
                 </div>
@@ -402,7 +432,7 @@ export default function Sidebar({
               </SidebarSection>
             </nav>
 
-            <div className="mt-auto border-t border-zinc-200/60 px-3 py-3 dark:border-zinc-800">
+            <div className="mt-auto px-3 py-3">
               <div className="flex items-center gap-2">
                 <SettingsPopover>
                   <button className="inline-flex items-center gap-2 rounded-lg px-2 py-2 text-sm hover:bg-zinc-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:hover:bg-zinc-800">
@@ -413,12 +443,16 @@ export default function Sidebar({
                   <ThemeToggle theme={theme} setTheme={setTheme} />
                 </div>
               </div>
-              <div className="mt-2 flex items-center gap-2 rounded-xl bg-zinc-50 p-2 dark:bg-zinc-800/60">
-                <div className="grid h-8 w-8 place-items-center rounded-full bg-zinc-900 text-xs font-bold text-white dark:bg-white dark:text-zinc-900">
-                  SM
+              <div className="mt-2 flex items-center gap-2 rounded-xl bg-transparent hover:bg-black/5 transition-colors p-2 dark:hover:bg-white/5 cursor-pointer">
+                <div className="grid h-8 w-8 place-items-center rounded-full bg-zinc-900 text-xs font-bold text-white dark:bg-white dark:text-zinc-900 uppercase">
+                  {user ? (
+                    (user.first_name?.[0] || "") + (user.last_name?.[0] || "") || user.username?.[0] || "U"
+                  ) : "U"}
                 </div>
                 <div className="min-w-0">
-                  <div className="truncate text-sm font-medium">Sopan Munde</div>
+                  <div className="truncate text-sm font-medium">
+                    {user ? `${user.first_name || ""} ${user.last_name || ""}`.trim() || user.username : "Loading..."}
+                  </div>
                   <div className="truncate text-xs text-zinc-500 dark:text-zinc-400">Pro workspace</div>
                 </div>
               </div>

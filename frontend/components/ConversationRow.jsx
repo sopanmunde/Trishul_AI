@@ -64,8 +64,8 @@ export default function ConversationRow({ data, active, onSelect, onTogglePin, o
         className={cls(
           "-mx-1 flex w-[calc(100%+8px)] items-center gap-2 rounded-lg px-2 py-2 text-left",
           active
-            ? "bg-zinc-100 text-zinc-900 dark:bg-zinc-800/60 dark:text-zinc-100"
-            : "hover:bg-zinc-100 dark:hover:bg-zinc-800",
+            ? "bg-[#ececec] text-[#0d0d0d] dark:bg-[#212121] dark:text-[#ececec]"
+            : "hover:bg-black/5 dark:hover:bg-[#212121]",
         )}
         title={data.title}
       >
