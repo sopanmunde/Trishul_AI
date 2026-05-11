@@ -129,7 +129,6 @@ export function BentoGrid() {
         >
           <h2
             className="text-3xl sm:text-4xl font-bold text-white mb-4"
-            style={{ fontFamily: "var(--font-instrument-sans)" }}
           >
             Everything you need to ship
           </h2>
@@ -148,8 +147,11 @@ export function BentoGrid() {
           {/* Large card - System Status */}
           <motion.div
             variants={itemVariants}
-            className="md:col-span-2 group relative p-6 rounded-2xl bg-zinc-900 border border-zinc-800 hover:border-zinc-600 hover:scale-[1.02] transition-all duration-300 overflow-hidden"
+            className="md:col-span-2 group relative p-6 rounded-2xl bg-zinc-900/50 border border-zinc-800 hover:border-zinc-600 backdrop-blur-sm hover:scale-[1.01] transition-all duration-300 overflow-hidden"
           >
+            {/* Mouse-follow spotlight effect (simulated with CSS) */}
+            <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
+              style={{ background: "radial-gradient(600px circle at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(255,255,255,0.06), transparent 40%)" }} />
             <div className="flex items-start justify-between mb-8">
               <div>
                 <div className="p-2 rounded-lg bg-zinc-800 w-fit mb-4">
@@ -175,8 +177,10 @@ export function BentoGrid() {
           {/* Command Palette */}
           <motion.div
             variants={itemVariants}
-            className="group relative p-6 rounded-2xl bg-zinc-900 border border-zinc-800 hover:border-zinc-600 hover:scale-[1.02] transition-all duration-300"
+            className="group relative p-6 rounded-2xl bg-zinc-900/50 border border-zinc-800 hover:border-zinc-600 backdrop-blur-sm hover:scale-[1.01] transition-all duration-300 overflow-hidden"
           >
+            <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
+              style={{ background: "radial-gradient(400px circle at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(255,255,255,0.06), transparent 40%)" }} />
             <div className="p-2 rounded-lg bg-zinc-800 w-fit mb-4">
               <Command className="w-5 h-5 text-zinc-400" strokeWidth={1.5} />
             </div>
@@ -188,8 +192,10 @@ export function BentoGrid() {
           {/* Analytics */}
           <motion.div
             variants={itemVariants}
-            className="group relative p-6 rounded-2xl bg-zinc-900 border border-zinc-800 hover:border-zinc-600 hover:scale-[1.02] transition-all duration-300"
+            className="group relative p-6 rounded-2xl bg-zinc-900/50 border border-zinc-800 hover:border-zinc-600 backdrop-blur-sm hover:scale-[1.01] transition-all duration-300 overflow-hidden"
           >
+            <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
+              style={{ background: "radial-gradient(400px circle at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(255,255,255,0.06), transparent 40%)" }} />
             <div className="p-2 rounded-lg bg-zinc-800 w-fit mb-4">
               <BarChart3 className="w-5 h-5 text-zinc-400" strokeWidth={1.5} />
             </div>
@@ -201,8 +207,10 @@ export function BentoGrid() {
           {/* Performance */}
           <motion.div
             variants={itemVariants}
-            className="group relative p-6 rounded-2xl bg-zinc-900 border border-zinc-800 hover:border-zinc-600 hover:scale-[1.02] transition-all duration-300"
+            className="group relative p-6 rounded-2xl bg-zinc-900/50 border border-zinc-800 hover:border-zinc-600 backdrop-blur-sm hover:scale-[1.01] transition-all duration-300 overflow-hidden"
           >
+            <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
+              style={{ background: "radial-gradient(400px circle at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(255,255,255,0.06), transparent 40%)" }} />
             <div className="p-2 rounded-lg bg-zinc-800 w-fit mb-4">
               <Zap className="w-5 h-5 text-zinc-400" strokeWidth={1.5} />
             </div>
@@ -219,8 +227,10 @@ export function BentoGrid() {
           {/* Security */}
           <motion.div
             variants={itemVariants}
-            className="group relative p-6 rounded-2xl bg-zinc-900 border border-zinc-800 hover:border-zinc-600 hover:scale-[1.02] transition-all duration-300"
+            className="group relative p-6 rounded-2xl bg-zinc-900/50 border border-zinc-800 hover:border-zinc-600 backdrop-blur-sm hover:scale-[1.01] transition-all duration-300 overflow-hidden"
           >
+            <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
+              style={{ background: "radial-gradient(400px circle at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(255,255,255,0.06), transparent 40%)" }} />
             <div className="p-2 rounded-lg bg-zinc-800 w-fit mb-4">
               <Shield className="w-5 h-5 text-zinc-400" strokeWidth={1.5} />
             </div>

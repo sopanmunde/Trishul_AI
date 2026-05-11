@@ -8,13 +8,13 @@ export default function SidebarSection({ title, children, collapsed, onToggle })
     <section className="flex flex-col">
       <button
         onClick={onToggle}
-        className="group flex w-full items-center justify-between px-2 pt-5 pb-1.5 text-[11px] font-semibold text-zinc-500/80 transition-colors hover:text-zinc-900 dark:text-zinc-500 dark:hover:text-zinc-300"
+        className="group flex w-full items-center justify-between px-1.5 pt-3.5 pb-1 text-[10px] font-semibold text-zinc-500/80 transition-colors hover:text-zinc-900 dark:text-zinc-500 dark:hover:text-zinc-300"
         aria-expanded={!collapsed}
       >
         <span className="uppercase tracking-[0.08em]">{title}</span>
         <ChevronDown
           className={cls(
-            "h-3 w-3 transition-transform duration-200",
+            "h-2.5 w-2.5 transition-transform duration-200",
             collapsed ? "-rotate-90" : "rotate-0"
           )}
         />

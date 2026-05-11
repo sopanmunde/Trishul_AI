@@ -4,6 +4,7 @@ import { useState, useRef } from "react"
 import { motion } from "framer-motion"
 import { Menu, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { TrishulLogo } from "@/components/TrishulLogo"
 
 const navItems = [
   { label: "Features", href: "#features" },
@@ -30,11 +31,8 @@ export function Navbar() {
         className="relative flex items-center justify-between px-4 py-3 rounded-full bg-zinc-900/40 backdrop-blur-md border border-zinc-800"
       >
         {/* Logo */}
-        <a href="#" className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-white flex items-center justify-center">
-            <span className="text-zinc-950 font-bold text-sm">AI</span>
-          </div>
-          <span className="font-semibold text-white hidden sm:block"><b><i>Trishul</i></b>-AI</span>
+        <a href="/" className="flex items-center gap-2">
+          <TrishulLogo size="sm" showWordmark wordmark="Trishul AI" animate={false} />
         </a>
 
         {/* Desktop Nav Items */}
@@ -65,8 +63,9 @@ export function Navbar() {
           <Button variant="ghost" size="sm" className="text-zinc-400 hover:text-white hover:bg-zinc-800">
             <a href="/login">Sign In</a>
           </Button>
-          <Button size="sm" className="shimmer-btn bg-white text-zinc-950 hover:bg-zinc-200 rounded-full px-4">
-            <a href="/signup">Sign Up</a>
+          <Button size="sm" className="relative overflow-hidden shimmer-btn bg-white text-zinc-950 hover:bg-zinc-100 rounded-full px-4 h-9 font-semibold transition-all">
+            <span className="absolute inset-0 -translate-x-full animate-[shimmer_2.5s_infinite] bg-gradient-to-r from-transparent via-zinc-200/40 to-transparent" />
+            <a href="/login" className="relative">Sign Up</a>
           </Button>
         </div>
 
@@ -104,7 +103,7 @@ export function Navbar() {
               <a href="/login">Sign In</a>
             </Button>
             <Button className="shimmer-btn bg-white text-zinc-950 hover:bg-zinc-200 rounded-full">
-              <a href="/signup">Get Started</a>
+              <a href="/login">Get Started</a>
             </Button>
           </div>
         </motion.div>

@@ -44,18 +44,18 @@ export default function ConversationRow({ data, active, onSelect, onTogglePin, o
           }
         }}
         className={cls(
-          "relative flex w-full items-center gap-2 rounded-xl px-2.5 py-2 text-left transition-all duration-100",
+          "relative flex w-full items-center gap-1.5 rounded-lg px-2 py-1.5 text-left transition-all duration-100",
           active
             ? "bg-zinc-200/80 text-zinc-900 dark:bg-zinc-800 dark:text-zinc-100"
             : "text-zinc-700 hover:bg-zinc-200/50 dark:text-zinc-400 dark:hover:bg-zinc-800/50",
         )}
       >
         {active && (
-          <div className="absolute left-0 top-1/2 h-4 w-0.5 -translate-y-1/2 rounded-full bg-violet-500 dark:bg-violet-400" />
+          <div className="absolute left-0 top-1/2 h-3 w-0.5 -translate-y-1/2 rounded-full bg-zinc-900 dark:bg-zinc-300" />
         )}
         
         <div className="min-w-0 flex-1 pl-1">
-          <span className="block truncate text-[13px] font-medium leading-snug">{data.title}</span>
+          <span className="block truncate text-[12px] font-medium leading-snug">{data.title}</span>
         </div>
 
         <Popover open={open} onOpenChange={setOpen}>
@@ -66,12 +66,12 @@ export default function ConversationRow({ data, active, onSelect, onTogglePin, o
                 setOpen(true)
               }}
               className={cls(
-                "rounded-lg p-1 text-zinc-500 transition-all hover:bg-black/5 dark:text-zinc-400 dark:hover:bg-white/5",
+                "rounded-md p-0.5 text-zinc-500 transition-all hover:bg-black/5 dark:text-zinc-400 dark:hover:bg-white/5",
                 open ? "opacity-100" : "opacity-0 group-hover:opacity-100"
               )}
               aria-label="Chat options"
             >
-              <MoreHorizontal className="h-4 w-4" />
+              <MoreHorizontal className="h-3 w-3" />
             </button>
           </PopoverTrigger>
           <PopoverContent 

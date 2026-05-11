@@ -20,7 +20,6 @@ export function FinalCTA() {
       >
         <h2
           className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white mb-6 tracking-tight"
-          style={{ fontFamily: "var(--font-cal-sans)" }}
         >
           Ready to ship faster?
         </h2>

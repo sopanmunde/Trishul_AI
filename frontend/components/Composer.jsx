@@ -2,6 +2,7 @@
 
 import { useRef, useState, forwardRef, useImperativeHandle, useEffect } from "react"
 import { Send, Loader2, Plus, Mic, StopCircle } from "lucide-react"
+import { motion } from "framer-motion"
 import ComposerActionsPopover from "./ComposerActionsPopover"
 import { cls } from "./utils"
 
@@ -67,10 +68,18 @@ const Composer = forwardRef(function Composer({ onSend, busy }, ref) {
         className={cls(
           "mx-auto max-w-3xl overflow-hidden rounded-2xl border bg-white transition-all duration-200 dark:bg-zinc-900",
           isFocused
-            ? "border-zinc-300 shadow-[0_0_0_4px_rgba(161,161,170,0.10)] dark:border-zinc-600 dark:shadow-[0_0_0_4px_rgba(255,255,255,0.04)]"
+            ? [
+                "border-zinc-400 dark:border-zinc-600",
+                "shadow-[0_0_0_3px_rgba(161,161,170,0.18)] dark:shadow-[0_0_0_3px_rgba(113,113,122,0.25)]",
+              ].join(" ")
             : "border-zinc-200 shadow-sm dark:border-zinc-800",
         )}
       >
+        {/* Top focus highlight bar */}
+        {isFocused && (
+          <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-zinc-400/70 dark:via-zinc-500/70 to-transparent" />
+        )}
+
         {/* Textarea */}
         <div className="px-4 pt-3.5 pb-1">
           <textarea
@@ -81,7 +90,7 @@ const Composer = forwardRef(function Composer({ onSend, busy }, ref) {
             onBlur={() => setIsFocused(false)}
             placeholder="Ask anything…"
             rows={1}
-            className="w-full resize-none bg-transparent text-[14px] leading-6 text-zinc-900 outline-none placeholder:text-zinc-400 dark:text-zinc-100 dark:placeholder:text-zinc-600"
+            className="w-full resize-none bg-transparent text-[14px] leading-6 text-zinc-900 outline-none placeholder:text-zinc-400 dark:text-zinc-100 dark:placeholder:text-zinc-600 scrollbar-thin"
             onKeyDown={(e) => {
               if (e.key === "Enter" && !e.shiftKey) {
                 e.preventDefault()
@@ -93,10 +102,10 @@ const Composer = forwardRef(function Composer({ onSend, busy }, ref) {
 
         {/* Toolbar */}
         <div className="flex items-center justify-between px-2.5 pb-2.5 pt-1">
-          {/* + Attachment */}
+          {/* + Actions */}
           <ComposerActionsPopover>
             <button
-              className="inline-flex h-8 w-8 items-center justify-center rounded-xl border border-zinc-200 bg-zinc-50 text-zinc-500 transition-all duration-150 hover:border-zinc-300 hover:bg-zinc-100 hover:text-zinc-700 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-400 dark:hover:border-zinc-600 dark:hover:bg-zinc-700 dark:hover:text-zinc-200 active:scale-95"
+              className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-zinc-700 bg-zinc-800 text-zinc-400 transition-all duration-150 hover:border-zinc-600 hover:bg-zinc-700 hover:text-white hover:shadow-lg hover:shadow-black/40 dark:border-zinc-700 dark:bg-zinc-800 active:scale-95"
               title="Actions"
             >
               <Plus className="h-4 w-4" />
@@ -112,25 +121,31 @@ const Composer = forwardRef(function Composer({ onSend, busy }, ref) {
               <Mic className="h-4 w-4" />
             </button>
 
-            <button
+            <motion.button
               onClick={handleSend}
               disabled={!hasContent && !busy}
               title={busy ? "Stop" : "Send (Enter)"}
+              whileHover={hasContent || busy ? { scale: 1.05 } : {}}
+              whileTap={hasContent || busy ? { scale: 0.95 } : {}}
               className={cls(
-                "inline-flex h-8 w-8 items-center justify-center rounded-xl transition-all duration-150 active:scale-95",
+                "inline-flex h-8 w-8 items-center justify-center rounded-xl transition-all duration-150",
                 hasContent || busy
-                  ? "bg-zinc-900 text-white shadow-sm hover:bg-zinc-700 dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-200"
+                  ? "relative overflow-hidden bg-zinc-900 text-white shadow-md dark:bg-white dark:text-zinc-900"
                   : "cursor-not-allowed bg-zinc-100 text-zinc-400 dark:bg-zinc-800 dark:text-zinc-600",
               )}
             >
-              {sending || busy ? <StopCircle className="h-4 w-4" /> : <Send className="h-4 w-4" />}
-            </button>
+              {/* Shimmer on active send button */}
+              {(hasContent || busy) && (
+                <span className="pointer-events-none absolute inset-0 -translate-x-full animate-[shimmer_2.5s_infinite] bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+              )}
+              {sending || busy ? <StopCircle className="relative h-4 w-4" /> : <Send className="relative h-4 w-4" />}
+            </motion.button>
           </div>
         </div>
       </div>
 
       {/* Footer hint */}
-      <p className="mx-auto mt-2 max-w-3xl text-center text-[11px] text-zinc-400 dark:text-zinc-600">
+      <p className="mx-auto mt-2 max-w-3xl text-center text-[11px] text-zinc-400/70 dark:text-zinc-600">
         Trishul AI can make mistakes. Verify important information.
       </p>
     </div>

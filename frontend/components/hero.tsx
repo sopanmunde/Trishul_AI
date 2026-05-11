@@ -3,6 +3,7 @@
 import { motion, cubicBezier } from "framer-motion"
 import { ArrowRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { TrishulLogo } from "@/components/TrishulLogo"
 
 const avatars = [
   "/professional-headshot-1.png",
@@ -30,25 +31,37 @@ export function Hero() {
       {/* Background gradient */}
       <div className="absolute inset-0 bg-gradient-to-b from-zinc-950 via-zinc-950 to-zinc-900 pointer-events-none" />
 
-      {/* Subtle radial glow */}
-      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[800px] h-[600px] bg-zinc-800/20 rounded-full blur-3xl pointer-events-none" />
+      {/* Violet radial spotlight glow */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/4 w-[900px] h-[700px] rounded-full blur-3xl pointer-events-none"
+        style={{ background: "radial-gradient(ellipse, rgba(139,92,246,0.12) 0%, rgba(59,130,246,0.06) 40%, transparent 70%)" }} />
+      <div className="absolute top-1/3 left-1/2 -translate-x-1/2 w-[600px] h-[400px] rounded-full blur-3xl pointer-events-none"
+        style={{ background: "radial-gradient(ellipse, rgba(124,58,237,0.08) 0%, transparent 70%)" }} />
 
       <div className="relative z-10 max-w-5xl mx-auto text-center">
+        {/* Logo mark — centered with glow */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.8, y: -10 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          transition={{ duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94] }}
+          className="flex justify-center mb-8"
+        >
+          <TrishulLogo size="xl" glow animate={false} />
+        </motion.div>
+
         {/* Badge */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.2 }}
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-zinc-900 border border-zinc-800 mb-8"
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-zinc-900/80 border border-zinc-800 mb-8 backdrop-blur-sm"
         >
-          <span className="w-2 h-2 rounded-full bg-emerald-500 pulse-glow" />
+          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse-glow" />
           <span className="text-sm text-zinc-400">Now in Public Beta</span>
         </motion.div>
 
         {/* Headline with text mask animation */}
         <h1
           className="text-5xl sm:text-6xl lg:text-7xl font-bold tracking-tight text-white mb-6"
-          style={{ fontFamily: "var(--font-cal-sans), sans-serif" }}
         >
           <span className="block overflow-hidden">
             <motion.span className="block" variants={textRevealVariants} initial="hidden" animate="visible" custom={0}>
@@ -87,15 +100,16 @@ export function Hero() {
         >
           <Button
             size="lg"
-            className="shimmer-btn bg-white text-zinc-950 hover:bg-zinc-200 rounded-full px-8 h-12 text-base font-medium shadow-lg shadow-white/10"
+            className="relative overflow-hidden shimmer-btn bg-white text-zinc-950 hover:bg-zinc-100 rounded-full px-8 h-12 text-base font-semibold shadow-lg shadow-white/10 transition-all hover:shadow-white/20"
           >
-            Start Building
-            <ArrowRight className="ml-2 w-4 h-4" />
+            <span className="absolute inset-0 -translate-x-full animate-[shimmer_2.5s_infinite] bg-gradient-to-r from-transparent via-zinc-200/40 to-transparent" />
+            <span className="relative">Start Building</span>
+            <ArrowRight className="relative ml-2 w-4 h-4" />
           </Button>
           <Button
             variant="outline"
             size="lg"
-            className="rounded-full px-8 h-12 text-base font-medium border-zinc-800 text-zinc-300 hover:bg-zinc-900 hover:text-white hover:border-zinc-700 bg-transparent"
+            className="rounded-full px-8 h-12 text-base font-medium border-zinc-800 text-zinc-300 hover:bg-zinc-900 hover:text-white hover:border-zinc-700 bg-transparent transition-all duration-200"
           >
             View Demo
           </Button>

@@ -77,7 +77,6 @@ export function Pricing() {
         >
           <h2
             className="text-3xl sm:text-4xl font-bold text-white mb-4"
-            style={{ fontFamily: "var(--font-instrument-sans)" }}
           >
             Simple, transparent pricing
           </h2>

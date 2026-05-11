@@ -1,7 +1,8 @@
 "use client"
 
 import { useState, forwardRef, useImperativeHandle, useRef, useEffect } from "react"
-import { Pencil, RefreshCw, Check, X, Square, Sparkles, Copy, ThumbsUp, ThumbsDown } from "lucide-react"
+import { Pencil, RefreshCw, Check, X, Square, Copy, ThumbsUp, ThumbsDown } from "lucide-react"
+import { TrishulLogo } from "./TrishulLogo"
 import { motion, AnimatePresence } from "framer-motion"
 import Message from "./Message"
 import Composer from "./Composer"
@@ -15,23 +16,36 @@ function ThinkingMessage({ onPause }) {
       animate={{ opacity: 1, y: 0 }}
       className="flex gap-3 px-1"
     >
-      <div className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-xl border border-zinc-200/80 bg-white text-[13px] shadow-sm dark:border-zinc-700/80 dark:bg-zinc-800">
-        ✱
+      {/* AI avatar — Trident logo */}
+      <div className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 shadow-sm">
+        <svg
+          className="w-[55%] h-[55%] text-zinc-900 dark:text-zinc-100"
+          viewBox="0 0 24 24" fill="none" stroke="currentColor"
+          strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"
+        >
+          <line x1="12" y1="3" x2="12" y2="21" />
+          <path d="M5 7 C5 3 19 3 19 7" />
+          <line x1="5" y1="7" x2="5" y2="13" />
+          <line x1="19" y1="7" x2="19" y2="13" />
+          <line x1="8" y1="21" x2="16" y2="21" />
+        </svg>
       </div>
       <div className="flex items-center gap-3 py-2">
-        <div className="flex items-center gap-1">
-          {[0, 150, 300].map((delay) => (
-            <div
+        {/* Staggered dots — zinc palette */}
+        <div className="flex items-center gap-[5px]">
+          {[0, 160, 320].map((delay) => (
+            <motion.div
               key={delay}
-              className="h-1.5 w-1.5 animate-bounce rounded-full bg-zinc-400 dark:bg-zinc-500"
-              style={{ animationDelay: `${delay}ms` }}
+              className="h-2 w-2 rounded-full bg-zinc-400 dark:bg-zinc-500"
+              animate={{ scale: [0.7, 1.2, 0.7], opacity: [0.35, 1, 0.35] }}
+              transition={{ duration: 1.2, repeat: Infinity, delay: delay / 1000, ease: "easeInOut" }}
             />
           ))}
         </div>
-        <span className="text-[13px] text-zinc-500 dark:text-zinc-400">Thinking…</span>
+        <span className="text-[13px] font-medium text-zinc-500 dark:text-zinc-400">Thinking…</span>
         <button
           onClick={onPause}
-          className="ml-1 inline-flex items-center gap-1.5 rounded-full border border-zinc-200 bg-white px-2.5 py-1 text-[11px] font-medium text-zinc-600 shadow-sm transition-all hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-700 active:scale-95"
+          className="ml-1 inline-flex items-center gap-1.5 rounded-full border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-2.5 py-1 text-[11px] font-medium text-zinc-600 dark:text-zinc-400 shadow-sm transition-all hover:bg-zinc-50 dark:hover:bg-zinc-700 active:scale-95"
         >
           <Square className="h-2.5 w-2.5" /> Stop
         </button>
@@ -42,10 +56,10 @@ function ThinkingMessage({ onPause }) {
 
 // ─── Suggestion Chips ────────────────────────────────────────────────────────
 const SUGGESTIONS = [
-  { label: "Explain a diagnosis", icon: "🩺" },
-  { label: "Drug interactions", icon: "💊" },
-  { label: "Summarize research", icon: "📄" },
-  { label: "Write a report", icon: "✍️" },
+  { label: "Explain a diagnosis" },
+  { label: "Drug interactions" },
+  { label: "Summarize research" },
+  { label: "Write a report" },
 ]
 
 function EmptyState({ onSuggestion }) {
@@ -55,42 +69,46 @@ function EmptyState({ onSuggestion }) {
       <motion.div
         initial={{ opacity: 0, scale: 0.8 }}
         animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
-        className="mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-violet-500 to-blue-600 shadow-lg shadow-violet-500/20"
+        transition={{ duration: 0.45, ease: [0.25, 0.46, 0.45, 0.94] }}
+        className="mb-6"
       >
-        <Sparkles className="h-8 w-8 text-white" />
+        <TrishulLogo size="lg" animate={false} />
       </motion.div>
 
+      {/* Shimmer headline */}
       <motion.h2
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.1 }}
+        transition={{ delay: 0.15, duration: 0.4 }}
         className="mb-1.5 text-2xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-100"
       >
-        How can I help you?
+        <span className="animate-shimmer-text">How can I help you?</span>
       </motion.h2>
+
       <motion.p
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.15 }}
-        className="mb-10 max-w-xs text-[13px] leading-relaxed text-zinc-500 dark:text-zinc-400"
+        transition={{ delay: 0.22, duration: 0.4 }}
+        className="mb-10 max-w-xs text-[13px] leading-relaxed text-zinc-500 dark:text-zinc-500"
       >
-        Ask me anything — medical guidance, research, or general questions.
+        Medical guidance, research, drug interactions &amp; more.
       </motion.p>
 
-      {/* Suggestion cards */}
-      <div className="grid grid-cols-2 gap-2.5 w-full max-w-sm">
+      {/* Suggestion cards — ShadCN dark glass */}
+      <div className="grid grid-cols-2 gap-2 w-full max-w-[340px]">
         {SUGGESTIONS.map((s, i) => (
           <motion.button
             key={s.label}
-            initial={{ opacity: 0, y: 12 }}
+            initial={{ opacity: 0, y: 14 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 + i * 0.05 }}
+            transition={{ delay: 0.28 + i * 0.06, duration: 0.35 }}
+            whileHover={{ scale: 1.02, y: -1 }}
+            whileTap={{ scale: 0.97 }}
             onClick={() => onSuggestion(s.label)}
-            className="group flex items-center gap-2.5 rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-left text-[13px] font-medium text-zinc-700 shadow-sm transition-all duration-150 hover:border-zinc-300 hover:bg-zinc-50 hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-800/80 active:scale-[0.97]"
+            className="group flex items-start gap-2.5 rounded-[16px] border border-zinc-200/80 bg-white/80 px-4 py-3 text-left text-[13px] font-medium text-zinc-700 shadow-sm backdrop-blur-sm transition-all duration-200 hover:border-zinc-300 hover:bg-white hover:shadow-md dark:border-zinc-800/80 dark:bg-zinc-900/60 dark:text-zinc-300 dark:hover:border-zinc-700 dark:hover:bg-zinc-800/80"
           >
-            <span className="text-base">{s.icon}</span>
-            <span className="leading-tight">{s.label}</span>
+            {/* <span className="mt-0.5 text-base leading-none">{s.icon}</span> */}
+            <span className="leading-snug">{s.label}</span>
           </motion.button>
         ))}
       </div>
@@ -144,7 +162,7 @@ const ChatPane = forwardRef(function ChatPane(
       await navigator.clipboard.writeText(text)
       setCopiedId(id)
       setTimeout(() => setCopiedId(null), 2000)
-    } catch {}
+    } catch { }
   }
 
   if (!conversation) return null
@@ -172,7 +190,7 @@ const ChatPane = forwardRef(function ChatPane(
                       <motion.div
                         initial={{ opacity: 0, scale: 0.98 }}
                         animate={{ opacity: 1, scale: 1 }}
-                        className="rounded-2xl border border-zinc-200 bg-white p-3 shadow-sm dark:border-zinc-700/60 dark:bg-zinc-800/60"
+                        className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-3 shadow-sm"
                       >
                         <textarea
                           value={draft}

@@ -45,7 +45,7 @@ export function LogoMarquee() {
                 <div className="w-8 h-8 rounded-lg bg-zinc-800 flex items-center justify-center">
                   <span className="text-xs font-bold">{logo.name[0]}</span>
                 </div>
-                <span className="font-medium" style={{ fontFamily: "var(--font-instrument-sans)" }}>
+                <span className="font-medium">
                   {logo.name}
                 </span>
               </div>
