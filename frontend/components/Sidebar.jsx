@@ -211,7 +211,7 @@ export default function Sidebar({
             {/* Header */}
             <div className="flex items-center gap-1.5 border-b border-zinc-200/60 px-2.5 py-2 dark:border-zinc-800/60">
               <div className="flex items-center gap-1.5 flex-1 min-w-0">
-                <TrishulLogo size="sm" showWordmark shimmer animate={false} />
+                <TrishulLogo size="sm" showWordmark wordmark="Trishul AI" animate={false} />
               </div>
 
               <div className="flex items-center gap-0">
@@ -315,7 +315,7 @@ export default function Sidebar({
               {(!recent || recent.length === 0) && (!pinned || pinned.length === 0) && (
                 <div className="mt-8 select-none rounded-[20px] border border-dashed border-zinc-200 px-4 py-8 text-center text-[12px] text-zinc-400 dark:border-zinc-800 dark:text-zinc-600">
                   <div className="mb-2 flex justify-center opacity-30">
-                    <TrishulLogo size="sm" animate={false} />
+                    <TrishulLogo size="lg" glow animate={false} />
                   </div>
                   No conversations yet.<br />Start a new chat to begin.
                 </div>
@@ -378,25 +378,28 @@ export default function Sidebar({
             {/* Footer / Profile */}
             <div className="mt-auto p-2">
               <SettingsPopover onUserUpdate={onUserUpdate}>
-                <button className="group flex w-full items-center gap-2 rounded-xl border border-transparent bg-white/40 p-1.5 text-left transition-all hover:border-zinc-200 hover:bg-white hover:shadow-sm dark:bg-zinc-800/20 dark:hover:border-zinc-700/50 dark:hover:bg-zinc-800/40 active:scale-[0.98]">
-                  <div className="relative">
-                    <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-violet-500 to-blue-600 text-[10px] font-bold text-white shadow-md shadow-violet-500/20">
+                <button className="group relative flex w-full items-center gap-2 overflow-hidden rounded-xl border border-transparent px-2 py-1.5 text-left transition-all duration-200 hover:border-zinc-200 hover:bg-white dark:hover:border-zinc-800 dark:hover:bg-zinc-900 active:scale-[0.98]">
+                  {/* Subtle hover shimmer */}
+                  <span className="pointer-events-none absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 bg-gradient-to-r from-transparent via-white/30 to-transparent dark:via-white/5" />
+
+                  {/* Avatar with gradient glow ring */}
+                  <div className="relative shrink-0">
+                    <div className="absolute -inset-0.5 rounded-lg bg-gradient-to-br from-violet-500 to-blue-500 opacity-0 group-hover:opacity-50 blur-[3px] transition-opacity duration-300" />
+                    <div className="relative flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-violet-500 to-blue-600 text-[10px] font-bold text-white shadow-sm">
                       {userInitials}
                     </div>
-                    <div className="absolute -bottom-0.5 -right-0.5 h-2 w-2 rounded-full border border-[#f9f9f9] bg-emerald-500 dark:border-[#171717]" />
+                    <div className="absolute -bottom-0.5 -right-0.5 h-2 w-2 rounded-full border border-[#f9f9f9] bg-emerald-500 dark:border-zinc-950" />
                   </div>
 
                   <div className="min-w-0 flex-1">
                     <div className="truncate text-[12px] font-semibold text-zinc-900 dark:text-zinc-100">{userName}</div>
-                    <div className="flex items-center gap-1 text-[10px] font-medium text-zinc-500">
-                      <span className="flex h-1 w-1 rounded-full bg-emerald-400" />
+                    <div className="flex items-center gap-1 text-[10px] text-zinc-500">
+                      <span className="h-1 w-1 rounded-full bg-emerald-400" />
                       Free plan
                     </div>
                   </div>
 
-                  <div className="flex h-6 w-6 items-center justify-center rounded-md text-zinc-400 transition-colors group-hover:bg-zinc-100 group-hover:text-zinc-900 dark:group-hover:bg-zinc-700/50 dark:group-hover:text-zinc-100">
-                    <ChevronRight className="h-3.5 w-3.5" />
-                  </div>
+                  <ChevronRight className="h-3.5 w-3.5 text-zinc-400 opacity-0 group-hover:opacity-100 transition-opacity duration-150" />
                 </button>
               </SettingsPopover>
             </div>

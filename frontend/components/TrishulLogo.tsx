@@ -48,27 +48,29 @@ export function TrishulLogo({
         {/* Subtle glow ring — only when glow prop is true */}
         {glow && (
           <div
-            className="absolute inset-0 rounded-[inherit] animate-pulse-glow blur-md opacity-60"
+            className="absolute inset-0 rounded-[inherit] animate-pulse-glow blur-xl opacity-80"
             style={{
-              background: "radial-gradient(circle, rgba(113,113,122,0.6) 0%, transparent 70%)",
-              transform: "scale(1.5)",
+              background: "radial-gradient(circle, rgba(139,92,246,0.4) 0%, rgba(59,130,246,0.2) 50%, transparent 80%)",
+              transform: "scale(1.8)",
             }}
           />
         )}
 
         {/* Premium solid icon box — Zinc palette */}
         <div
-          className={`relative flex items-center justify-center overflow-hidden select-none ${cfg.box}
-            bg-zinc-900 dark:bg-zinc-100
-            border border-zinc-700 dark:border-zinc-300
-            shadow-md shadow-zinc-900/20 dark:shadow-zinc-400/10`}
+          className={`relative flex items-center justify-center overflow-hidden select-none z-10 ${cfg.box}
+            bg-zinc-950 dark:bg-zinc-900
+            border border-zinc-800 dark:border-zinc-700
+            shadow-lg shadow-black/40`}
         >
           {/* Subtle inner shine */}
           <div className="absolute inset-0 bg-gradient-to-br from-white/10 via-transparent to-black/10 dark:from-black/5 dark:to-black/5 pointer-events-none" />
+          {/* Animated sweeping shine */}
+          <div className="absolute inset-0 -translate-x-full animate-[shimmer_2.5s_infinite] bg-gradient-to-r from-transparent via-white/10 to-transparent pointer-events-none" />
 
           {/* Trident / fork SVG */}
           <svg
-            className={`relative ${cfg.icon} text-white dark:text-zinc-900`}
+            className={`relative ${cfg.icon} text-zinc-100`}
             viewBox="0 0 24 24"
             fill="none"
             stroke="currentColor"

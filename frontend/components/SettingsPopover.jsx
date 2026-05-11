@@ -1,117 +1,216 @@
 "use client"
-import { useState } from "react"
-import { Globe, HelpCircle, Crown, BookOpen, LogOut, ChevronRight, Settings, Sparkles } from "lucide-react"
+import { useState, useEffect } from "react"
+import { Globe, HelpCircle, Crown, BookOpen, LogOut, ChevronRight, Settings, Sparkles, Zap } from "lucide-react"
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover"
 import { UserProfileModal } from "./UserProfileModal"
+import { motion, AnimatePresence } from "framer-motion"
 
-const menuItemClass =
-  "group flex items-center gap-3 w-full px-3 py-2.5 text-[13px] text-left text-zinc-700 dark:text-zinc-300 rounded-xl transition-all duration-150 hover:bg-zinc-100/80 dark:hover:bg-white/[0.06] active:scale-[0.98]"
+/* ── tiny shimmer border helper ─────────────────────────────────────────── */
+function ShimmerBorder({ className = "" }) {
+  return (
+    <span
+      className={`pointer-events-none absolute inset-0 rounded-[inherit] ${className}`}
+      style={{
+        background:
+          "linear-gradient(120deg, transparent 30%, rgba(255,255,255,0.18) 50%, transparent 70%)",
+        backgroundSize: "200% 100%",
+        animation: "shimmer-border 3s linear infinite",
+      }}
+    />
+  )
+}
 
+/* ── menu item ───────────────────────────────────────────────────────────── */
+function MenuItem({ icon: Icon, label, iconBg = "bg-zinc-100 dark:bg-zinc-800", iconColor = "text-zinc-500 dark:text-zinc-400", badge, badgeColor = "bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400", suffix, onClick, danger = false }) {
+  return (
+    <motion.button
+      onClick={onClick}
+      whileHover={{ x: 2 }}
+      transition={{ duration: 0.15 }}
+      className={`group flex w-full items-center gap-2.5 rounded-xl px-2.5 py-2 text-[12.5px] text-left transition-all duration-150 active:scale-[0.98]
+        ${danger
+          ? "text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10"
+          : "text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100/80 dark:hover:bg-white/[0.06]"
+        }`}
+    >
+      <div className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-lg ${danger ? "bg-red-50 dark:bg-red-500/10" : iconBg}`}>
+        <Icon className={`h-3.5 w-3.5 ${danger ? "text-red-500" : iconColor}`} />
+      </div>
+      <span className="font-medium flex-1">{label}</span>
+      {badge && (
+        <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold ${badgeColor}`}>
+          {badge}
+        </span>
+      )}
+      {suffix}
+    </motion.button>
+  )
+}
+
+/* ── main component ──────────────────────────────────────────────────────── */
 export default function SettingsPopover({ children, onUserUpdate = () => {} }) {
   const [open, setOpen] = useState(false)
   const [isProfileOpen, setIsProfileOpen] = useState(false)
+  const [user, setUser] = useState(null)
+
+  useEffect(() => {
+    const token = typeof window !== "undefined" ? localStorage.getItem("token") : null
+    if (!token) return
+    fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000"}/api/me`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then((r) => r.ok ? r.json() : null)
+      .then((data) => data && setUser(data))
+      .catch(() => {})
+  }, [open])
+
+  const initials = user
+    ? ((user.first_name?.[0] || "") + (user.last_name?.[0] || "")).toUpperCase() || user.username?.[0]?.toUpperCase() || "U"
+    : "U"
+  const displayName = user
+    ? `${user.first_name || ""} ${user.last_name || ""}`.trim() || user.username || "User"
+    : "User"
+  const email = user?.email || ""
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>{children}</PopoverTrigger>
-      <PopoverContent
-        className="w-72 p-0 overflow-hidden rounded-[24px] border border-zinc-200/80 bg-white/95 shadow-2xl backdrop-blur-2xl dark:border-white/[0.08] dark:bg-zinc-950/95"
-        align="end"
-        side="right"
-        sideOffset={12}
-      >
-        <div className="p-2.5">
-          {/* Workspace card */}
-          <div className="mb-2 flex items-center gap-3 rounded-2xl border border-zinc-100 bg-zinc-50/80 px-3 py-2.5 dark:border-white/[0.06] dark:bg-white/[0.04]">
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-violet-500 to-blue-600 shadow-sm">
-              <Sparkles className="h-4 w-4 text-white" />
-            </div>
-            <div className="min-w-0 flex-1">
-              <div className="text-[13px] font-bold text-zinc-900 dark:text-zinc-100">Personal</div>
-              <div className="text-[11px] font-medium text-zinc-500 dark:text-zinc-500">Free plan</div>
-            </div>
-            <div className="flex h-5 w-5 items-center justify-center rounded-full bg-blue-500 shadow-sm">
-              <svg className="h-3 w-3 text-white" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-              </svg>
-            </div>
-          </div>
+    <>
+      <style>{`
+        @keyframes shimmer-border {
+          0% { background-position: -200% 0; }
+          100% { background-position: 200% 0; }
+        }
+        @keyframes gradient-shift {
+          0%, 100% { background-position: 0% 50%; }
+          50% { background-position: 100% 50%; }
+        }
+      `}</style>
 
-          {/* Section 1 */}
-          <div className="space-y-px">
-            <button
-              onClick={() => { setOpen(false); setIsProfileOpen(true) }}
-              className={menuItemClass}
-            >
-              <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-zinc-100 dark:bg-white/[0.07]">
-                <Settings className="h-3.5 w-3.5 text-zinc-500 dark:text-zinc-400" />
-              </div>
-              <span className="font-medium">Settings</span>
-            </button>
+      <Popover open={open} onOpenChange={setOpen}>
+        <PopoverTrigger asChild>{children}</PopoverTrigger>
 
-            <button className={menuItemClass}>
-              <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-zinc-100 dark:bg-white/[0.07]">
-                <Globe className="h-3.5 w-3.5 text-zinc-500 dark:text-zinc-400" />
-              </div>
-              <span className="font-medium">Language</span>
-              <ChevronRight className="ml-auto h-3.5 w-3.5 text-zinc-400" />
-            </button>
+        <PopoverContent
+          className="w-64 p-0 overflow-hidden rounded-2xl border border-zinc-200/70 bg-white shadow-2xl dark:border-zinc-800/70 dark:bg-zinc-950"
+          align="end"
+          side="right"
+          sideOffset={10}
+        >
+          <AnimatePresence>
+            {open && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.96, y: 4 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.96 }}
+                transition={{ duration: 0.15, ease: "easeOut" }}
+              >
+                {/* ── Profile header ── */}
+                <div className="relative overflow-hidden px-3 py-3 border-b border-zinc-100 dark:border-zinc-800/80">
+                  {/* Animated gradient blob */}
+                  <div
+                    className="absolute inset-0 opacity-[0.07] dark:opacity-[0.12]"
+                    style={{
+                      background: "radial-gradient(ellipse at 80% 0%, #8b5cf6 0%, #3b82f6 50%, transparent 70%)",
+                    }}
+                  />
+                  <div className="relative flex items-center gap-3">
+                    {/* Avatar with animated ring */}
+                    <div className="relative shrink-0">
+                      <div className="absolute -inset-0.5 rounded-xl bg-gradient-to-br from-violet-500 to-blue-500 opacity-60 blur-[3px]" />
+                      <div className="relative flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-violet-500 to-blue-600 text-[13px] font-bold text-white shadow-md">
+                        {initials}
+                      </div>
+                      {/* Online dot */}
+                      <div className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full border-2 border-white dark:border-zinc-950 bg-emerald-500" />
+                    </div>
 
-            <button className={menuItemClass}>
-              <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-zinc-100 dark:bg-white/[0.07]">
-                <HelpCircle className="h-3.5 w-3.5 text-zinc-500 dark:text-zinc-400" />
-              </div>
-              <span className="font-medium">Get help</span>
-            </button>
-          </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="truncate text-[13px] font-semibold text-zinc-900 dark:text-zinc-100">{displayName}</div>
+                      {email && <div className="truncate text-[11px] text-zinc-500 dark:text-zinc-500">{email}</div>}
+                    </div>
+                  </div>
 
-          <div className="my-2 mx-1 h-px bg-zinc-100 dark:bg-white/[0.05]" />
+                  {/* Plan badge */}
+                  <div className="relative mt-2.5 flex items-center gap-2 rounded-lg border border-zinc-100 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 px-2.5 py-1.5">
+                    <div className="flex h-4 w-4 items-center justify-center rounded-md bg-zinc-200 dark:bg-zinc-700">
+                      <Zap className="h-2.5 w-2.5 text-zinc-600 dark:text-zinc-300" />
+                    </div>
+                    <span className="text-[11px] font-medium text-zinc-600 dark:text-zinc-400">Free plan</span>
+                    <button
+                      className="ml-auto text-[10px] font-semibold text-violet-600 dark:text-violet-400 hover:underline underline-offset-2 transition-colors"
+                    >
+                      Upgrade →
+                    </button>
+                  </div>
+                </div>
 
-          {/* Section 2 — Upgrade */}
-          <div className="space-y-px">
-            <button className={menuItemClass}>
-              <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-amber-50 dark:bg-amber-500/10">
-                <Crown className="h-3.5 w-3.5 text-amber-500" />
-              </div>
-              <span className="font-medium">Upgrade plan</span>
-              <span className="ml-auto rounded-full bg-amber-100 px-1.5 py-0.5 text-[10px] font-bold text-amber-600 dark:bg-amber-500/20 dark:text-amber-400">
-                PRO
-              </span>
-            </button>
+                {/* ── Menu sections ── */}
+                <div className="p-1.5 space-y-0.5">
+                  <MenuItem
+                    icon={Settings}
+                    label="Settings"
+                    onClick={() => { setOpen(false); setIsProfileOpen(true) }}
+                  />
+                  <MenuItem
+                    icon={Globe}
+                    label="Language"
+                    suffix={<ChevronRight className="h-3 w-3 text-zinc-400" />}
+                  />
+                  <MenuItem
+                    icon={HelpCircle}
+                    label="Get help"
+                    suffix={<ChevronRight className="h-3 w-3 text-zinc-400" />}
+                  />
+                </div>
 
-            <button className={menuItemClass}>
-              <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-zinc-100 dark:bg-white/[0.07]">
-                <BookOpen className="h-3.5 w-3.5 text-zinc-500 dark:text-zinc-400" />
-              </div>
-              <span className="font-medium">Learn more</span>
-              <ChevronRight className="ml-auto h-3.5 w-3.5 text-zinc-400" />
-            </button>
-          </div>
+                <div className="mx-3 h-px bg-zinc-100 dark:bg-zinc-800/80" />
 
-          <div className="my-2 mx-1 h-px bg-zinc-100 dark:bg-white/[0.05]" />
+                <div className="p-1.5 space-y-0.5">
+                  {/* Upgrade — Magic UI shimmer card */}
+                  <div className="relative overflow-hidden rounded-xl">
+                    <button
+                      className="group relative flex w-full items-center gap-2.5 rounded-xl px-2.5 py-2 text-[12.5px] text-left transition-all duration-150 hover:bg-amber-50 dark:hover:bg-amber-500/10 active:scale-[0.98]"
+                    >
+                      <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-amber-50 dark:bg-amber-500/10">
+                        <Crown className="h-3.5 w-3.5 text-amber-500" />
+                      </div>
+                      <span className="font-medium text-zinc-700 dark:text-zinc-300">Upgrade plan</span>
+                      <span className="ml-auto rounded-full bg-gradient-to-r from-amber-400 to-orange-400 px-1.5 py-0.5 text-[9px] font-bold text-white shadow-sm">
+                        PRO
+                      </span>
+                    </button>
+                  </div>
 
-          {/* Log out */}
-          <button
-            onClick={() => {
-              localStorage.removeItem("token")
-              document.cookie = "auth_token=; path=/; max-age=0"
-              window.location.href = "/login"
-            }}
-            className="group flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-[13px] text-left text-red-600 transition-all duration-150 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-500/10 active:scale-[0.98]"
-          >
-            <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-red-50 dark:bg-red-500/10">
-              <LogOut className="h-3.5 w-3.5 text-red-500" />
-            </div>
-            <span className="font-bold">Log out</span>
-          </button>
-        </div>
-      </PopoverContent>
+                  <MenuItem
+                    icon={BookOpen}
+                    label="Learn more"
+                    suffix={<ChevronRight className="h-3 w-3 text-zinc-400" />}
+                  />
+                </div>
 
-      <UserProfileModal
-        isOpen={isProfileOpen}
-        onClose={() => setIsProfileOpen(false)}
-        onUpdate={onUserUpdate}
-      />
-    </Popover>
+                <div className="mx-3 h-px bg-zinc-100 dark:bg-zinc-800/80" />
+
+                <div className="p-1.5">
+                  <MenuItem
+                    icon={LogOut}
+                    label="Log out"
+                    danger
+                    onClick={() => {
+                      localStorage.removeItem("token")
+                      document.cookie = "auth_token=; path=/; max-age=0"
+                      window.location.href = "/login"
+                    }}
+                  />
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </PopoverContent>
+
+        <UserProfileModal
+          isOpen={isProfileOpen}
+          onClose={() => setIsProfileOpen(false)}
+          onUpdate={onUserUpdate}
+        />
+      </Popover>
+    </>
   )
 }

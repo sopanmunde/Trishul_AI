@@ -72,7 +72,7 @@ function EmptyState({ onSuggestion }) {
         transition={{ duration: 0.45, ease: [0.25, 0.46, 0.45, 0.94] }}
         className="mb-6"
       >
-        <TrishulLogo size="lg" animate={false} />
+        <TrishulLogo size="xl" glow animate={false} />
       </motion.div>
 
       {/* Shimmer headline */}
