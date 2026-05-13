@@ -11,7 +11,7 @@ def get_llm(provider: str = "gemini"):
         return ChatOpenAI(model="gpt-4o", temperature=0.2, streaming=True)
     elif provider == "gemini":
         from langchain_google_genai import ChatGoogleGenerativeAI
-        return ChatGoogleGenerativeAI(model="gemini-2.5-flash", temperature=0.2, streaming=True, max_retries=5)
+        return ChatGoogleGenerativeAI(model="gemini-1.5-flash-latest", temperature=0.2, streaming=True, max_retries=5)
     else:
         raise ValueError(f"Unknown provider: {provider}")
 

@@ -52,7 +52,7 @@ function SidebarIconBtn({ onClick, title, children }) {
 }
 
 // ── Collapsed rail ───────────────────────────────────────────────────────────
-function CollapsedSidebar({ setSidebarCollapsed, createNewChat, onSearchClick, onFoldersClick, showSearchModal, setShowSearchModal, conversations, selectedId, onSelect, togglePin }) {
+function CollapsedSidebar({ setSidebarCollapsed, createNewChat, onSearchClick, onFoldersClick, showSearchModal, setShowSearchModal, conversations, selectedId, onSelect, togglePin, onUserUpdate }) {
   return (
     <>
       <motion.aside
@@ -176,6 +176,7 @@ export default function Sidebar({
         selectedId={selectedId}
         onSelect={onSelect}
         togglePin={togglePin}
+        onUserUpdate={onUserUpdate}
       />
     )
   }

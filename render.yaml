@@ -9,6 +9,8 @@ services:
     buildCommand: pip install -r requirements.txt
     startCommand: uvicorn index:app --host 0.0.0.0 --port $PORT
     envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.2
       - key: MONGODB_URI
         sync: false # You fill this in Render dashboard
       - key: PINECONE_API_KEY

@@ -96,7 +96,7 @@ export default function AIAssistantUI() {
     try {
       const token = localStorage.getItem("token")
       if (!token) return
-      const apiUrl = process.env.NEXT_PUBLIC_API_BASE_URL
+      const apiUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000/api"
       const res = await fetch(`${apiUrl}/me`, {
         headers: { Authorization: `Bearer ${token}` },
       })
@@ -137,7 +137,8 @@ export default function AIAssistantUI() {
       const token = localStorage.getItem("token");
       if (!token) return;
       try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/conversations`, {
+        const apiUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000/api"
+        const res = await fetch(`${apiUrl}/conversations`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         if (res.ok) {
@@ -176,7 +177,8 @@ export default function AIAssistantUI() {
         const token = localStorage.getItem("token");
         if (!token) return;
         try {
-          const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/conversations/${selectedId}/messages`, {
+          const apiUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000/api"
+          const res = await fetch(`${apiUrl}/conversations/${selectedId}/messages`, {
             headers: { Authorization: `Bearer ${token}` }
           });
           if (res.ok) {
@@ -218,7 +220,8 @@ export default function AIAssistantUI() {
     const token = localStorage.getItem("token");
     if (!token) return;
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/conversations`, {
+      const apiUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000/api"
+      const res = await fetch(`${apiUrl}/conversations`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -249,7 +252,8 @@ export default function AIAssistantUI() {
     const token = localStorage.getItem("token")
     if (!token) return
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/conversations/${id}`, {
+      const apiUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000/api"
+      const res = await fetch(`${apiUrl}/conversations/${id}`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` }
       })
@@ -266,7 +270,8 @@ export default function AIAssistantUI() {
     const token = localStorage.getItem("token")
     if (!token) return
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/conversations/${id}`, {
+      const apiUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000/api"
+      const res = await fetch(`${apiUrl}/conversations/${id}`, {
         method: "PUT",
         headers: { 
           "Content-Type": "application/json",
@@ -324,7 +329,8 @@ export default function AIAssistantUI() {
     setThinkingConvId(convId);
 
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/chat`, {
+      const apiUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000/api"
+      const response = await fetch(`${apiUrl}/chat`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

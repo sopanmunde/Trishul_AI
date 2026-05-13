@@ -95,7 +95,8 @@ export default function AuthPage() {
     setIsLoading(true)
     try {
       if (isSignUp) {
-        const res = await fetch("http://localhost:8000/api/register", {
+        const apiUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000"
+        const res = await fetch(`${apiUrl}/register`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -116,7 +117,8 @@ export default function AuthPage() {
           setForm((p) => ({ ...p, password: "", confirmPassword: "" }))
         }, 1600)
       } else {
-        const res = await fetch("http://localhost:8000/api/login", {
+        const apiUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000"
+        const res = await fetch(`${apiUrl}/login`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ email: form.email, password: form.password }),
