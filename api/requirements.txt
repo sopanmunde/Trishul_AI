@@ -21,7 +21,7 @@ pytesseract
 
 python-dotenv
 
-fastapi>
+fastapi
 uvicorn[standard]
 python-multipart
 mangum
