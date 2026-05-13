@@ -1,0 +1,29 @@
+services:
+  # ==========================================
+  # FastAPI Backend — Render Free Web Service
+  # ==========================================
+  - type: web
+    name: trishul-ai-backend
+    runtime: python
+    rootDir: api
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn index:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: MONGODB_URI
+        sync: false # You fill this in Render dashboard
+      - key: PINECONE_API_KEY
+        sync: false
+      - key: PINECONE_ENV
+        sync: false
+      - key: PINECONE_INDEX_NAME
+        sync: false
+      - key: GOOGLE_API_KEY
+        sync: false
+      - key: SECRET_KEY
+        sync: false
+      - key: ALGORITHM
+        value: HS256
+      - key: ACCESS_TOKEN_EXPIRE_MINUTES
+        value: "30"
+      - key: FRONTEND_URL
+        sync: false # Your Vercel URL e.g. https://trishul-ai.vercel.app

@@ -141,7 +141,7 @@ pip install -r requirements.txt
 ### Environment Varibles
 
 ```bash
-GEMINI_API_KEY=your_api_key
+GOOGLE_API_KEY=your_api_key
 PINECONE_API_KEY=your_api_key
 MONGODB_URL=your_monogodb_connection_url
 DATABASE_NAME=your_database_name

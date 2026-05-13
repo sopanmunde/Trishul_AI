@@ -42,12 +42,12 @@ app = FastAPI(
 )
 # app.include_router(entry_root)
 # app.include_router(auth)
-
+FRONTEND_URL = os.getenv("FRONTEND_URL")
 
 # Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],  # In production, specify your frontend URL
+    allow_origins=[FRONTEND_URL],  # In production, specify your frontend URL
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -61,10 +61,10 @@ app.add_middleware(
 
 
 PINECONE_API_KEY = os.getenv("PINECONE_API_KEY")
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 
 os.environ["PINECONE_API_KEY"] = PINECONE_API_KEY
-os.environ["GEMINI_API_KEY"] = GEMINI_API_KEY
+os.environ["GOOGLE_API_KEY"] = GOOGLE_API_KEY
 
 # Init embeddings + vector store
 embeddings = download_embeddings()
@@ -354,7 +354,12 @@ async def chat(request: QueryRequest, current_user=Depends(get_current_user)):
         except Exception as e:
             import traceback
             traceback.print_exc()
-            yield f"data: {json.dumps({'error': str(e)})}\n\n"
+            error_msg = str(e)
+            if "503" in error_msg or "Service Unavailable" in error_msg:
+                friendly_msg = "The AI model is currently experiencing high demand. Please try again in a few moments."
+                yield f"data: {json.dumps({'error': friendly_msg})}\n\n"
+            else:
+                yield f"data: {json.dumps({'error': error_msg})}\n\n"
 
     return StreamingResponse(generate(), media_type="text/event-stream")
 

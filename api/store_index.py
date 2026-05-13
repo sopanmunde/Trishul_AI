@@ -10,10 +10,10 @@ from langchain_community.document_loaders import UnstructuredPDFLoader
 load_dotenv(dotenv_path='.env')
 
 PINECONE_API_KEY = os.getenv("PINECONE_API_KEY")
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 
 os.environ["PINECONE_API_KEY"] = PINECONE_API_KEY
-os.environ["GEMINI_API_KEY"] = GEMINI_API_KEY
+os.environ["GOOGLE_API_KEY"] = GOOGLE_API_KEY
 
 extracted_data = load_pdf_files('data')
 minimal_docs = filter_to_minimal_docs(extracted_data)
