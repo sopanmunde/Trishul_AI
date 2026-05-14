@@ -129,8 +129,9 @@ export default function AuthPage() {
         document.cookie = `auth_token=${data.access_token}; path=/; SameSite=Lax; max-age=${60 * 60 * 24 * 7}`
         router.push("/dashboard")
       }
-    } catch (err: any) {
-      setError(err.message || "Something went wrong. Please try again.")
+    } catch (err) {
+      const error = err as Error
+      setError(error.message || "Something went wrong. Please try again.")
     } finally {
       setIsLoading(false)
     }

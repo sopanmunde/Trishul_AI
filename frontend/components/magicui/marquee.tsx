@@ -3,14 +3,13 @@
 import { cn } from "@/lib/utils"
 import type { ReactNode } from "react"
 
-interface MarqueeProps {
+interface MarqueeProps extends React.HTMLAttributes<HTMLDivElement> {
   className?: string
   reverse?: boolean
   pauseOnHover?: boolean
   children?: ReactNode
   vertical?: boolean
   repeat?: number
-  [key: string]: any
 }
 
 export function Marquee({

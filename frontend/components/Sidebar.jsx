@@ -2,17 +2,16 @@
 import { motion, AnimatePresence } from "framer-motion"
 import {
   PanelLeftClose, PanelLeftOpen, SearchIcon, Plus, FolderIcon,
-  FileText, Settings, PenSquare, ChevronRight
+  Settings, PenSquare, ChevronRight
 } from "lucide-react"
 import { TrishulLogo } from "./TrishulLogo"
 import SidebarSection from "./SidebarSection"
 import ConversationRow from "./ConversationRow"
 import FolderRow from "./FolderRow"
 import TemplateRow from "./TemplateRow"
-import ThemeToggle from "./ThemeToggle"
-import CreateFolderModal from "./CreateFolderModal"
-import CreateTemplateModal from "./CreateTemplateModal"
-import SearchModal from "./SearchModal"
+import FolderPopover from "./CreateFolderModal"
+import TemplatePopover from "./CreateTemplateModal"
+import SearchPopover from "./SearchModal"
 import SettingsPopover from "./SettingsPopover"
 import { cls } from "./utils"
 import { useState, useEffect } from "react"
@@ -52,58 +51,52 @@ function SidebarIconBtn({ onClick, title, children }) {
 }
 
 // ── Collapsed rail ───────────────────────────────────────────────────────────
-function CollapsedSidebar({ setSidebarCollapsed, createNewChat, onSearchClick, onFoldersClick, showSearchModal, setShowSearchModal, conversations, selectedId, onSelect, togglePin, onUserUpdate }) {
+function CollapsedSidebar({ setSidebarCollapsed, createNewChat, conversations, selectedId, onSelect, onUserUpdate }) {
   return (
-    <>
-      <motion.aside
-        initial={{ width: 240 }}
-        animate={{ width: 48 }}
-        transition={{ type: "spring", stiffness: 280, damping: 30 }}
-        className="z-50 flex h-full shrink-0 flex-col border-r border-zinc-200 bg-[#f9f9f9] dark:border-zinc-800/60 dark:bg-zinc-950"
-      >
-        <div className="flex items-center justify-center border-b border-zinc-200 px-1.5 py-2.5 dark:border-zinc-800/80">
-          <SidebarIconBtn onClick={() => setSidebarCollapsed(false)} title="Open sidebar">
-            <PanelLeftOpen className="h-3.5 w-3.5" />
-          </SidebarIconBtn>
-        </div>
+    <motion.aside
+      initial={{ width: 240 }}
+      animate={{ width: 48 }}
+      transition={{ type: "spring", stiffness: 280, damping: 30 }}
+      className="z-50 flex h-full shrink-0 flex-col border-r border-zinc-200 bg-[#f9f9f9] dark:border-zinc-800/60 dark:bg-zinc-950"
+    >
+      <div className="flex items-center justify-center border-b border-zinc-200 px-1.5 py-2.5 dark:border-zinc-800/80">
+        <SidebarIconBtn onClick={() => setSidebarCollapsed(false)} title="Open sidebar">
+          <PanelLeftOpen className="h-3.5 w-3.5" />
+        </SidebarIconBtn>
+      </div>
 
-        <div className="flex flex-1 flex-col items-center gap-1 pt-2">
-          <SidebarIconBtn onClick={createNewChat} title="New Chat">
-            <PenSquare className="h-3.5 w-3.5" />
-          </SidebarIconBtn>
-          <SidebarIconBtn onClick={onSearchClick} title="Search">
+      <div className="flex flex-1 flex-col items-center gap-1 pt-2">
+        <SidebarIconBtn onClick={createNewChat} title="New Chat">
+          <PenSquare className="h-3.5 w-3.5" />
+        </SidebarIconBtn>
+
+        <SearchPopover conversations={conversations} onSelect={onSelect} createNewChat={createNewChat}>
+          <SidebarIconBtn title="Search">
             <SearchIcon className="h-3.5 w-3.5" />
           </SidebarIconBtn>
-          <SidebarIconBtn onClick={onFoldersClick} title="Folders">
+        </SearchPopover>
+
+        <FolderPopover onCreateFolder={() => { setSidebarCollapsed(false) }}>
+          <SidebarIconBtn title="Folders">
             <FolderIcon className="h-3.5 w-3.5" />
           </SidebarIconBtn>
-        </div>
+        </FolderPopover>
+      </div>
 
-        <div className="flex flex-col items-center gap-1 pb-3">
-          <SettingsPopover onUserUpdate={onUserUpdate}>
-            <SidebarIconBtn title="Settings">
-              <Settings className="h-3.5 w-3.5" />
-            </SidebarIconBtn>
-          </SettingsPopover>
-        </div>
-      </motion.aside>
-
-      <SearchModal
-        isOpen={showSearchModal}
-        onClose={() => setShowSearchModal(false)}
-        conversations={conversations}
-        selectedId={selectedId}
-        onSelect={onSelect}
-        togglePin={togglePin}
-        createNewChat={createNewChat}
-      />
-    </>
+      <div className="flex flex-col items-center gap-1 pb-3">
+        <SettingsPopover onUserUpdate={onUserUpdate}>
+          <SidebarIconBtn title="Settings">
+            <Settings className="h-3.5 w-3.5" />
+          </SidebarIconBtn>
+        </SettingsPopover>
+      </div>
+    </motion.aside>
   )
 }
 
 // ── Main Sidebar ─────────────────────────────────────────────────────────────
 export default function Sidebar({
-  open, onClose, theme, setTheme,
+  open, onClose,
   collapsed, setCollapsed,
   conversations, pinned, recent,
   folders, folderCounts,
@@ -115,15 +108,13 @@ export default function Sidebar({
   onDeleteConversation = () => { }, onRenameConversation = () => { },
   user = null, onUserUpdate = () => { },
 }) {
-  const [showCreateFolderModal, setShowCreateFolderModal] = useState(false)
-  const [showCreateTemplateModal, setShowCreateTemplateModal] = useState(false)
   const [editingTemplate, setEditingTemplate] = useState(null)
-  const [showSearchModal, setShowSearchModal] = useState(false)
   const [mounted, setMounted] = useState(false)
   const [collapsedGroups, setCollapsedGroups] = useState({})
 
   useEffect(() => {
-    setMounted(true)
+    const timer = requestAnimationFrame(() => setMounted(true))
+    return () => cancelAnimationFrame(timer)
   }, [])
 
   const toggleGroup = (label) => {
@@ -144,10 +135,9 @@ export default function Sidebar({
     } else {
       setTemplates([...templates, { ...data, id: Date.now().toString() }])
     }
-    setShowCreateTemplateModal(false)
   }
 
-  const handleEditTemplate = (t) => { setEditingTemplate(t); setShowCreateTemplateModal(true) }
+  const handleEditTemplate = (t) => { setEditingTemplate(t) }
   const handleRenameTemplate = (id, name) => setTemplates(templates.map((t) => t.id === id ? { ...t, name } : t))
   const handleDeleteTemplate = (id) => setTemplates(templates.filter((t) => t.id !== id))
   const handleUseTemplate = (t) => onUseTemplate(t)
@@ -168,14 +158,9 @@ export default function Sidebar({
       <CollapsedSidebar
         setSidebarCollapsed={setSidebarCollapsed}
         createNewChat={createNewChat}
-        onSearchClick={() => setShowSearchModal(true)}
-        onFoldersClick={() => { setSidebarCollapsed(false); setCollapsed((s) => ({ ...s, folders: false })) }}
-        showSearchModal={showSearchModal}
-        setShowSearchModal={setShowSearchModal}
         conversations={conversations}
         selectedId={selectedId}
         onSelect={onSelect}
-        togglePin={togglePin}
         onUserUpdate={onUserUpdate}
       />
     )
@@ -249,17 +234,24 @@ export default function Sidebar({
               </button>
 
               <div className="relative group">
-                <SearchIcon className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 h-3 w-3 text-zinc-400 group-focus-within:text-zinc-600 dark:group-focus-within:text-zinc-300 transition-colors" />
-                <input
-                  ref={searchRef}
-                  type="text"
-                  value={query}
-                  onChange={(e) => setQuery(e.target.value)}
-                  placeholder="Search chats…"
-                  onClick={() => setShowSearchModal(true)}
-                  onFocus={() => setShowSearchModal(true)}
-                  className="w-full rounded-xl border border-zinc-200 bg-zinc-100/50 py-1.5 pl-8 pr-2.5 text-[12px] text-zinc-800 placeholder:text-zinc-400 outline-none ring-0 transition-all focus:border-zinc-400 focus:bg-white focus:shadow-[0_0_0_2px_rgba(161,161,170,0.12)] dark:border-zinc-800 dark:bg-zinc-800/40 dark:text-zinc-200 dark:placeholder:text-zinc-600 dark:focus:border-zinc-600 dark:focus:bg-zinc-900"
-                />
+                <SearchPopover
+                  conversations={conversations}
+                  onSelect={onSelect}
+                  createNewChat={createNewChat}
+                >
+                  <div className="relative">
+                    <SearchIcon className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 h-3 w-3 text-zinc-400 group-focus-within:text-zinc-600 dark:group-focus-within:text-zinc-300 transition-colors" />
+                    <input
+                      ref={searchRef}
+                      type="text"
+                      value={query}
+                      onChange={(e) => setQuery(e.target.value)}
+                      placeholder="Search chats…"
+                      className="w-full rounded-xl border border-zinc-200 bg-zinc-100/50 py-1.5 pl-8 pr-2.5 text-[12px] text-zinc-800 placeholder:text-zinc-400 outline-none ring-0 transition-all focus:border-zinc-400 focus:bg-white focus:shadow-[0_0_0_2px_rgba(161,161,170,0.12)] dark:border-zinc-800 dark:bg-zinc-800/40 dark:text-zinc-200 dark:placeholder:text-zinc-600 dark:focus:border-zinc-600 dark:focus:bg-zinc-900 cursor-pointer"
+                      readOnly
+                    />
+                  </div>
+                </SearchPopover>
               </div>
             </div>
 
@@ -328,12 +320,13 @@ export default function Sidebar({
                 collapsed={collapsed.folders}
                 onToggle={() => setCollapsed((s) => ({ ...s, folders: !s.folders }))}
               >
-                <button
-                  onClick={() => setShowCreateFolderModal(true)}
-                  className="mb-0.5 flex w-full items-center gap-1.5 rounded-lg px-2 py-1.5 text-left text-[11px] font-medium text-zinc-500 hover:bg-zinc-200/60 hover:text-zinc-900 dark:text-zinc-500 dark:hover:bg-zinc-800 dark:hover:text-zinc-300 transition-colors"
-                >
-                  <Plus className="h-3 w-3" /> New folder
-                </button>
+                <FolderPopover onCreateFolder={handleCreateFolder}>
+                  <button
+                    className="mb-0.5 flex w-full items-center gap-1.5 rounded-lg px-2 py-1.5 text-left text-[11px] font-medium text-zinc-500 hover:bg-zinc-200/60 hover:text-zinc-900 dark:text-zinc-500 dark:hover:bg-zinc-800 dark:hover:text-zinc-300 transition-colors"
+                  >
+                    <Plus className="h-3 w-3" /> New folder
+                  </button>
+                </FolderPopover>
                 {folders.map((f) => (
                   <FolderRow
                     key={f.id}
@@ -357,12 +350,13 @@ export default function Sidebar({
                 collapsed={collapsed.templates}
                 onToggle={() => setCollapsed((s) => ({ ...s, templates: !s.templates }))}
               >
-                <button
-                  onClick={() => setShowCreateTemplateModal(true)}
-                  className="mb-0.5 flex w-full items-center gap-1.5 rounded-lg px-2 py-1.5 text-left text-[11px] font-medium text-zinc-500 hover:bg-zinc-200/60 hover:text-zinc-900 dark:text-zinc-500 dark:hover:bg-zinc-800 dark:hover:text-zinc-300 transition-colors"
-                >
-                  <Plus className="h-3 w-3" /> New template
-                </button>
+                <TemplatePopover onCreateTemplate={handleCreateTemplate} editingTemplate={editingTemplate}>
+                  <button
+                    className="mb-0.5 flex w-full items-center gap-1.5 rounded-lg px-2 py-1.5 text-left text-[11px] font-medium text-zinc-500 hover:bg-zinc-200/60 hover:text-zinc-900 dark:text-zinc-500 dark:hover:bg-zinc-800 dark:hover:text-zinc-300 transition-colors"
+                  >
+                    <Plus className="h-3 w-3" /> New template
+                  </button>
+                </TemplatePopover>
                 {(Array.isArray(templates) ? templates : []).map((t) => (
                   <TemplateRow
                     key={t.id}
@@ -407,27 +401,6 @@ export default function Sidebar({
           </motion.aside>
         )}
       </AnimatePresence>
-
-      <CreateFolderModal
-        isOpen={showCreateFolderModal}
-        onClose={() => setShowCreateFolderModal(false)}
-        onCreateFolder={handleCreateFolder}
-      />
-      <CreateTemplateModal
-        isOpen={showCreateTemplateModal}
-        onClose={() => { setShowCreateTemplateModal(false); setEditingTemplate(null) }}
-        onCreateTemplate={handleCreateTemplate}
-        editingTemplate={editingTemplate}
-      />
-      <SearchModal
-        isOpen={showSearchModal}
-        onClose={() => setShowSearchModal(false)}
-        conversations={conversations}
-        selectedId={selectedId}
-        onSelect={onSelect}
-        togglePin={togglePin}
-        createNewChat={createNewChat}
-      />
     </>
   )
 }

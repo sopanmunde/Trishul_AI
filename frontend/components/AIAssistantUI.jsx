@@ -1,10 +1,9 @@
 "use client"
 
-import React, { useEffect, useMemo, useRef, useState } from "react"
+import React, { useEffect, useMemo, useRef, useState, useCallback } from "react"
 import Sidebar from "./Sidebar"
-import Header from "./Header"
 import ChatPane from "./ChatPane"
-import ThemeToggle from "./ThemeToggle"
+import Header from "./Header"
 import { INITIAL_TEMPLATES, INITIAL_FOLDERS } from "./mockData"
 
 export default function AIAssistantUI() {
@@ -161,15 +160,15 @@ export default function AIAssistantUI() {
   useEffect(() => {
     if (isConversationsLoaded && !selectedId) {
       if (conversations.length === 0) {
-        createNewChat()
+        setSelectedId("new")
       } else {
         setSelectedId(conversations[0].id)
       }
     }
-  }, [isConversationsLoaded, selectedId, conversations.length])
+  }, [isConversationsLoaded, selectedId, conversations])
 
   useEffect(() => {
-    if (!selectedId) return;
+    if (!selectedId || selectedId === "new") return;
     const conv = conversations.find(c => c.id === selectedId);
     if (conv && (!conv.messages || conv.messages.length === 0) && conv.messageCount !== 0) {
       // Fetch messages if not already fetched
@@ -216,36 +215,9 @@ export default function AIAssistantUI() {
     setConversations((prev) => prev.map((c) => (c.id === id ? { ...c, pinned: !c.pinned } : c)))
   }
 
-  async function createNewChat() {
-    const token = localStorage.getItem("token");
-    if (!token) return;
-    try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000/api"
-      const res = await fetch(`${apiUrl}/conversations`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          title: "New Chat",
-          folder: "Work Projects",
-          pinned: false
-        })
-      });
-      if (res.ok) {
-        const item = await res.json();
-        item.updatedAt = item.updated_at || item.updatedAt || new Date().toISOString();
-        item.messages = [];
-        item.messageCount = 0;
-        item.preview = "Say hello to start...";
-        setConversations(prev => [item, ...prev]);
-        setSelectedId(item.id);
-        setSidebarOpen(false);
-      }
-    } catch (err) {
-      console.error(err);
-    }
+  function createNewChat() {
+    setSelectedId("new")
+    setSidebarOpen(false)
   }
 
   async function deleteConversation(id) {
@@ -287,8 +259,7 @@ export default function AIAssistantUI() {
     }
   }
 
-  function createFolder() {
-    const name = prompt("Folder name")
+  function createFolder(name) {
     if (!name) return
     if (folders.some((f) => f.name.toLowerCase() === name.toLowerCase())) return alert("Folder already exists.")
     setFolders((prev) => [...prev, { id: Math.random().toString(36).slice(2), name }])
@@ -296,37 +267,75 @@ export default function AIAssistantUI() {
 
   async function sendMessage(convId, content) {
     const token = localStorage.getItem("token");
-    if (!content.trim()) return;
+    if (!content.trim() || !token) return;
+
+    let targetConvId = convId;
     const now = new Date().toISOString();
     const userMsg = { id: Math.random().toString(36).slice(2), role: "user", content, createdAt: now };
 
-    const targetConv = conversations.find(c => c.id === convId);
-    if (targetConv && targetConv.title === "New Chat") {
-      let newTitle = content.trim().split(/\s+/).slice(0, 5).join(" ");
-      if (newTitle.length < content.trim().length) newTitle += "...";
-      renameConversation(convId, newTitle);
+    // 1. Handle New Chat creation
+    if (convId === "new") {
+      try {
+        const apiUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000/api"
+        const res = await fetch(`${apiUrl}/conversations`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            title: content.trim().split(/\s+/).slice(0, 6).join(" ").slice(0, 50) || "New Chat",
+            folder: "Work Projects",
+            pinned: false
+          })
+        });
+        if (res.ok) {
+          const item = await res.json();
+          targetConvId = item.id;
+          const initialConv = {
+            ...item,
+            updatedAt: now,
+            messages: [userMsg],
+            messageCount: 1,
+            preview: content.slice(0, 80)
+          };
+          setConversations(prev => [initialConv, ...prev]);
+          setSelectedId(targetConvId);
+        } else {
+          return;
+        }
+      } catch (err) {
+        console.error("Failed to create conversation", err);
+        return;
+      }
+    } else {
+      // 2. Regular message handling for existing chat
+      const targetConv = conversations.find(c => c.id === convId);
+      if (targetConv && targetConv.title === "New Chat") {
+        let newTitle = content.trim().split(/\s+/).slice(0, 5).join(" ");
+        if (newTitle.length < content.trim().length) newTitle += "...";
+        renameConversation(convId, newTitle);
+      }
+
+      setConversations((prev) =>
+        prev.map((c) => {
+          if (c.id !== convId) return c;
+          const msgs = [...(c.messages || []), userMsg];
+          return {
+            ...c,
+            messages: msgs,
+            updatedAt: now,
+            messageCount: msgs.length,
+            preview: content.slice(0, 80),
+          };
+        })
+      );
     }
 
-    // Initialize the assistant message with empty content to stream into
+    // 3. Start Streaming
     const asstMsgId = Math.random().toString(36).slice(2);
-    const initialAsstMsg = { id: asstMsgId, role: "assistant", content: "", createdAt: now };
-
-    setConversations((prev) =>
-      prev.map((c) => {
-        if (c.id !== convId) return c;
-        const msgs = [...(c.messages || []), userMsg];
-        return {
-          ...c,
-          messages: msgs,
-          updatedAt: now,
-          messageCount: msgs.length,
-          preview: content.slice(0, 80),
-        };
-      })
-    );
-
     setIsThinking(true);
-    setThinkingConvId(convId);
+    setThinkingConvId(targetConvId);
 
     try {
       const apiUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000/api"
@@ -336,7 +345,7 @@ export default function AIAssistantUI() {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ msg: content, conversation_id: convId }),
+        body: JSON.stringify({ msg: content, conversation_id: targetConvId }),
       });
 
       if (!response.ok) {
@@ -412,7 +421,7 @@ export default function AIAssistantUI() {
       setThinkingConvId(null);
       setConversations((prev) =>
         prev.map((c) => {
-          if (c.id !== convId) return c;
+          if (c.id !== targetConvId) return c;
           const msgs = c.messages.map(m => m.id === asstMsgId ? { ...m, content: "Sorry, I couldn't process your request. Please try again." } : m);
           return { ...c, messages: msgs };
         })
@@ -458,7 +467,12 @@ export default function AIAssistantUI() {
 
   const composerRef = useRef(null)
 
-  const selected = conversations.find((c) => c.id === selectedId) || null
+  const selected = useMemo(() => {
+    if (selectedId === "new") {
+      return { id: "new", title: "New Chat", messages: [], preview: "Say hello to start..." }
+    }
+    return conversations.find((c) => c.id === selectedId) || null
+  }, [selectedId, conversations])
 
   return (
     <div className="flex h-screen w-full overflow-hidden bg-white text-zinc-900 dark:bg-[#212121] dark:text-zinc-100">
@@ -498,6 +512,8 @@ export default function AIAssistantUI() {
           createNewChat={createNewChat}
           sidebarCollapsed={sidebarCollapsed}
           setSidebarOpen={setSidebarOpen}
+          user={user}
+          onUserUpdate={fetchUser}
         />
         <ChatPane
           ref={composerRef}

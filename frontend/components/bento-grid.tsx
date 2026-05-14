@@ -4,6 +4,16 @@ import { motion, useInView } from "framer-motion"
 import { useRef, useEffect, useState } from "react"
 import { Activity, Command, BarChart3, Zap, Shield } from "lucide-react"
 
+function MetricValue({ min = 60, max = 100 }) {
+  const [value, setValue] = useState(null)
+  useEffect(() => {
+    setValue(Math.floor(Math.random() * (max - min) + min))
+  }, [min, max])
+
+  if (value === null) return <span className="opacity-0">--</span>
+  return <>{value}%</>
+}
+
 const containerVariants = {
   hidden: {},
   visible: {
@@ -167,7 +177,9 @@ export function BentoGrid() {
             <div className="grid grid-cols-4 gap-4">
               {["CPU", "Memory", "Network", "Storage"].map((metric) => (
                 <div key={metric} className="text-center">
-                  <div className="text-2xl font-bold text-white mb-1">{Math.floor(Math.random() * 40 + 60)}%</div>
+                  <div className="text-2xl font-bold text-white mb-1">
+                    <MetricValue min={60} max={100} />
+                  </div>
                   <div className="text-xs text-zinc-500">{metric}</div>
                 </div>
               ))}

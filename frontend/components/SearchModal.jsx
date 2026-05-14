@@ -1,7 +1,8 @@
 "use client"
+import { useState, useMemo } from "react"
+import { X, SearchIcon, Plus, Clock, ChevronRight } from "lucide-react"
+import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover"
 import { motion, AnimatePresence } from "framer-motion"
-import { X, SearchIcon, Plus, Clock } from "lucide-react"
-import { useState, useEffect, useMemo } from "react"
 
 function getTimeGroup(dateString) {
   const date = new Date(dateString)
@@ -12,48 +13,40 @@ function getTimeGroup(dateString) {
 
   if (date >= today) return "Today"
   if (date >= yesterday) return "Yesterday"
-  if (date >= sevenDaysAgo) return "Previous 7 Days"
+  if (date >= sevenDaysAgo) return "7 days ago"
   return "Older"
 }
 
-export default function SearchModal({
-  isOpen,
-  onClose,
+export default function SearchPopover({
+  children,
   conversations,
-  selectedId,
   onSelect,
-  togglePin,
   createNewChat,
 }) {
+  const [open, setOpen] = useState(false)
   const [query, setQuery] = useState("")
 
   const filteredConversations = useMemo(() => {
-    if (!query.trim()) return conversations
+    if (!query.trim()) return conversations.slice(0, 5)
     const q = query.toLowerCase()
     return conversations.filter((c) => c.title.toLowerCase().includes(q) || c.preview.toLowerCase().includes(q))
   }, [conversations, query])
 
   const groupedConversations = useMemo(() => {
-    const groups = {
-      Today: [],
-      Yesterday: [],
-      "Previous 7 Days": [],
-      Older: [],
-    }
-
+    const groups = {}
     filteredConversations
       .sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt))
       .forEach((conv) => {
         const group = getTimeGroup(conv.updatedAt)
+        if (!groups[group]) groups[group] = []
         groups[group].push(conv)
       })
-
     return groups
   }, [filteredConversations])
 
   const handleClose = () => {
     setQuery("")
-    onClose()
+    setOpen(false)
   }
 
   const handleNewChat = () => {
@@ -66,111 +59,90 @@ export default function SearchModal({
     handleClose()
   }
 
-  useEffect(() => {
-    const handleEscape = (e) => {
-      if (e.key === "Escape") handleClose()
-    }
-
-    if (isOpen) {
-      document.addEventListener("keydown", handleEscape)
-      return () => document.removeEventListener("keydown", handleEscape)
-    }
-  }, [isOpen])
-
   return (
-    <AnimatePresence>
-      {isOpen && (
-        <>
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 bg-black/60"
-            onClick={handleClose}
-          />
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95, y: -20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: -20 }}
-            className="fixed left-1/2 top-[20%] z-50 w-full max-w-2xl -translate-x-1/2 rounded-2xl border border-zinc-200 bg-white shadow-2xl dark:border-zinc-800 dark:bg-zinc-900"
-          >
-            {/* Search Header */}
-            <div className="flex items-center gap-3 border-b border-zinc-200 p-4 dark:border-zinc-800">
-              <SearchIcon className="h-5 w-5 text-zinc-400" />
-              <input
-                type="text"
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder="Search chats..."
-                className="flex-1 bg-transparent text-lg outline-none placeholder:text-zinc-400"
-                autoFocus
-              />
-              <button onClick={handleClose} className="rounded-lg p-1.5 hover:bg-zinc-100 dark:hover:bg-zinc-800">
-                <X className="h-5 w-5" />
-              </button>
-            </div>
-
-            {/* Search Results */}
-            <div className="max-h-[60vh] overflow-y-auto">
-              {/* New Chat Option */}
-              <div className="border-b border-zinc-200 p-2 dark:border-zinc-800">
-                <button
-                  onClick={handleNewChat}
-                  className="flex w-full items-center gap-3 rounded-lg p-3 text-left hover:bg-zinc-100 dark:hover:bg-zinc-800"
-                >
-                  <Plus className="h-5 w-5 text-zinc-500" />
-                  <span className="font-medium">New chat</span>
-                </button>
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>{children}</PopoverTrigger>
+      <PopoverContent
+        side="right"
+        align="start"
+        sideOffset={12}
+        className="p-0 w-[340px] overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-xl dark:border-zinc-800 dark:bg-zinc-950"
+      >
+        <AnimatePresence>
+          {open && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.96, x: -8 }}
+              animate={{ opacity: 1, scale: 1, x: 0 }}
+              exit={{ opacity: 0, scale: 0.96, x: -8 }}
+              transition={{ duration: 0.15, ease: "easeOut" }}
+            >
+              <div className="p-3 border-b border-zinc-100 dark:border-zinc-800/80 bg-zinc-50/50 dark:bg-zinc-900/50">
+                <div className="relative group">
+                  <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-zinc-400 transition-colors group-focus-within:text-zinc-600 dark:group-focus-within:text-zinc-300" />
+                  <input
+                    type="text"
+                    value={query}
+                    onChange={(e) => setQuery(e.target.value)}
+                    placeholder="Search conversations..."
+                    className="w-full rounded-xl border border-zinc-200 bg-white py-2 pl-9 pr-3 text-[13px] text-zinc-800 placeholder:text-zinc-400 outline-none transition-all focus:border-zinc-400 focus:shadow-[0_0_0_2px_rgba(161,161,170,0.1)] dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-200"
+                    autoFocus
+                  />
+                </div>
               </div>
 
-              {/* Conversation Groups */}
-              {Object.entries(groupedConversations).map(([groupName, convs]) => {
-                if (convs.length === 0) return null
+              <div className="max-h-[400px] overflow-y-auto p-1.5 scrollbar-thin scrollbar-thumb-zinc-200 dark:scrollbar-thumb-zinc-800">
+                {/* New Chat Quick Action */}
+                <button
+                  onClick={handleNewChat}
+                  className="group flex w-full items-center gap-3 rounded-xl px-2.5 py-2 text-left transition-all hover:bg-zinc-100/80 dark:hover:bg-white/[0.04]"
+                >
+                  <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-zinc-100 dark:bg-zinc-800 text-zinc-500">
+                    <Plus className="h-3.5 w-3.5" />
+                  </div>
+                  <span className="text-[13px] font-semibold text-zinc-700 dark:text-zinc-200">Start new chat</span>
+                </button>
 
-                return (
-                  <div key={groupName} className="border-b border-zinc-200 p-2 last:border-b-0 dark:border-zinc-800">
-                    <div className="px-3 py-2 text-xs font-medium text-zinc-500 dark:text-zinc-400">{groupName}</div>
-                    <div className="space-y-1">
+                {Object.entries(groupedConversations).map(([groupName, convs]) => (
+                  <div key={groupName} className="mt-2">
+                    <div className="px-3 py-1.5 text-[10px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-widest">
+                      {groupName}
+                    </div>
+                    <div className="space-y-0.5">
                       {convs.map((conv) => (
                         <button
                           key={conv.id}
                           onClick={() => handleSelectConversation(conv.id)}
-                          className="flex w-full items-center gap-3 rounded-lg p-3 text-left hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                          className="group flex w-full items-center gap-3 rounded-xl px-2.5 py-2 text-left transition-all hover:bg-zinc-100 dark:hover:bg-white/[0.04] active:scale-[0.98]"
                         >
-                          <Clock className="h-4 w-4 text-zinc-400 shrink-0" />
-                          <div className="min-w-0 flex-1">
-                            <div className="truncate font-medium">{conv.title}</div>
-                            <div className="truncate text-sm text-zinc-500 dark:text-zinc-400">{conv.preview}</div>
+                          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-zinc-100 dark:bg-zinc-800 text-zinc-400">
+                            <Clock className="h-3.5 w-3.5" />
                           </div>
+                          <div className="min-w-0 flex-1">
+                            <div className="truncate text-[13px] font-semibold text-zinc-800 dark:text-zinc-100 leading-none mb-1">
+                              {conv.title}
+                            </div>
+                            <div className="truncate text-[11px] text-zinc-500 dark:text-zinc-500">
+                              {conv.preview || "No messages"}
+                            </div>
+                          </div>
+                          <ChevronRight className="h-3 w-3 text-zinc-300 opacity-0 group-hover:opacity-100 transition-opacity" />
                         </button>
                       ))}
                     </div>
                   </div>
-                )
-              })}
+                ))}
 
-              {/* Empty State */}
-              {filteredConversations.length === 0 && query.trim() && (
-                <div className="p-8 text-center">
-                  <SearchIcon className="mx-auto h-12 w-12 text-zinc-300 dark:text-zinc-600" />
-                  <div className="mt-4 text-lg font-medium text-zinc-900 dark:text-zinc-100">No chats found</div>
-                  <div className="mt-2 text-sm text-zinc-500 dark:text-zinc-400">
-                    Try searching with different keywords
+                {filteredConversations.length === 0 && (
+                  <div className="py-12 text-center">
+                    <SearchIcon className="mx-auto h-8 w-8 text-zinc-200 dark:text-zinc-800 mb-2" />
+                    <p className="text-[12px] text-zinc-400">No results found</p>
                   </div>
-                </div>
-              )}
-
-              {/* Default State - Show all conversations when no query */}
-              {!query.trim() && conversations.length === 0 && (
-                <div className="p-8 text-center">
-                  <div className="text-lg font-medium text-zinc-900 dark:text-zinc-100">No conversations yet</div>
-                  <div className="mt-2 text-sm text-zinc-500 dark:text-zinc-400">Start a new chat to begin</div>
-                </div>
-              )}
-            </div>
-          </motion.div>
-        </>
-      )}
-    </AnimatePresence>
+                )}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </PopoverContent>
+    </Popover>
   )
 }
