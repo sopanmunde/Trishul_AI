@@ -6,11 +6,11 @@ import { Button } from "@/components/ui/button"
 import { TrishulLogo } from "@/components/TrishulLogo"
 
 const avatars = [
-  "/professional-headshot-1.png",
-  "/professional-headshot-2.png",
-  "/professional-headshot-3.png",
-  "/professional-headshot-4.png",
-  "/professional-headshot-5.png",
+  "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face",
+  "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&h=150&fit=crop&crop=face",
+  "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face",
+  "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&h=150&fit=crop&crop=face",
+  "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face",
 ]
 
 const textRevealVariants = {

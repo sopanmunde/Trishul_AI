@@ -23,13 +23,14 @@ python-dotenv
 
 fastapi
 uvicorn[standard]
+gunicorn
 python-multipart
 mangum
 
 pydantic
 pydantic[email]
 
-passlib[bcrypt]
+bcrypt
 python-jose[cryptography]
 
 motor

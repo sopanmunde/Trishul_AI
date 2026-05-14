@@ -4,12 +4,12 @@ import { Paperclip, Bot, Search, Palette, BookOpen, MoreHorizontal, Globe, Chevr
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover"
 import { motion, AnimatePresence } from "framer-motion"
 
-/* ── icon wrapper with colorful glow ─────────────────────────────────────── */
-function ActionIcon({ icon: Icon, color, bg, customIcon }) {
+/* ── icon wrapper ───────────────────────────────────────────────────────── */
+function ActionIcon({ icon: Icon, customIcon }) {
   if (customIcon) return customIcon
   return (
-    <div className={`relative flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ${bg}`}>
-      <Icon className={`h-3.5 w-3.5 ${color}`} />
+    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-zinc-100 border border-zinc-200 dark:bg-zinc-900 dark:border-zinc-800 transition-colors group-hover:bg-zinc-200 dark:group-hover:bg-zinc-800">
+      <Icon className="h-4 w-4 text-zinc-600 dark:text-zinc-400" />
     </div>
   )
 }
@@ -19,17 +19,16 @@ function ActionRow({ action, index, onAction }) {
   const Icon = action.icon
   return (
     <motion.button
-      initial={{ opacity: 0, x: -6 }}
-      animate={{ opacity: 1, x: 0 }}
-      transition={{ delay: index * 0.04, duration: 0.2 }}
-      whileHover={{ x: 2 }}
+      initial={{ opacity: 0, y: 4 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: index * 0.03, duration: 0.15 }}
       onClick={() => onAction(action.action)}
-      className="group flex w-full items-center gap-2.5 rounded-xl px-2.5 py-2 text-[12.5px] text-left text-zinc-700 dark:text-zinc-300 transition-all duration-150 hover:bg-zinc-100/80 dark:hover:bg-white/[0.06] active:scale-[0.97]"
+      className="group flex w-full items-center gap-3 rounded-xl px-2.5 py-2 text-[13px] text-left text-zinc-700 dark:text-zinc-300 transition-all duration-150 hover:bg-zinc-100/50 dark:hover:bg-white/[0.04] active:scale-[0.98]"
     >
-      <ActionIcon icon={Icon} color={action.color} bg={action.bg} customIcon={action.customIcon} />
-      <span className="font-medium flex-1">{action.label}</span>
+      <ActionIcon icon={Icon} customIcon={action.customIcon} />
+      <span className="font-semibold flex-1 leading-none">{action.label}</span>
       {action.badge && (
-        <span className={`rounded-full px-1.5 py-0.5 text-[9px] font-bold ${action.badgeStyle}`}>
+        <span className="rounded-md bg-zinc-900 px-1.5 py-0.5 text-[9px] font-bold text-white dark:bg-white dark:text-zinc-950">
           {action.badge}
         </span>
       )}
@@ -40,8 +39,8 @@ function ActionRow({ action, index, onAction }) {
 /* ── section label ───────────────────────────────────────────────────────── */
 function SectionLabel({ children }) {
   return (
-    <div className="px-2.5 pt-2 pb-1">
-      <p className="text-[10px] font-semibold uppercase tracking-widest text-zinc-400 dark:text-zinc-600">
+    <div className="px-3 pt-3 pb-1.5">
+      <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 dark:text-zinc-500">
         {children}
       </p>
     </div>
@@ -50,7 +49,7 @@ function SectionLabel({ children }) {
 
 /* ── divider ─────────────────────────────────────────────────────────────── */
 function Divider() {
-  return <div className="mx-2 my-1 h-px bg-zinc-100 dark:bg-zinc-800/60" />
+  return <div className="mx-2.5 my-1.5 h-px bg-zinc-100 dark:bg-zinc-800/80" />
 }
 
 export default function ComposerActionsPopover({ children }) {
@@ -183,10 +182,10 @@ export default function ComposerActionsPopover({ children }) {
       <PopoverTrigger asChild>{children}</PopoverTrigger>
 
       <PopoverContent
-        className="p-0 w-auto overflow-hidden rounded-2xl border border-zinc-200/70 bg-white shadow-2xl dark:border-zinc-800/70 dark:bg-zinc-950"
+        className="p-0 w-auto overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-xl dark:border-zinc-800 dark:bg-zinc-950"
         align="start"
         side="top"
-        sideOffset={8}
+        sideOffset={12}
       >
         <AnimatePresence mode="wait">
           {!showMore ? (

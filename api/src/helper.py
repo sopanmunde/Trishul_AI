@@ -2,7 +2,6 @@ from langchain_community.document_loaders import PyPDFLoader, DirectoryLoader, U
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from typing import List
 from langchain_core.documents import Document
-from langchain_community.embeddings import HuggingFaceEmbeddings
 import os
 
 def get_llm(provider: str = "gemini"):
@@ -11,7 +10,10 @@ def get_llm(provider: str = "gemini"):
         return ChatOpenAI(model="gpt-4o", temperature=0.2, streaming=True)
     elif provider == "gemini":
         from langchain_google_genai import ChatGoogleGenerativeAI
-        return ChatGoogleGenerativeAI(model="gemini-1.5-flash-latest", temperature=0.2, streaming=True, max_retries=5)
+        # Use gemini-2.0-flash-lite as primary (higher free-tier quota)
+        # Fall back to gemini-1.5-flash if needed
+        model = os.getenv("GEMINI_MODEL", "gemini-2.0-flash")
+        return ChatGoogleGenerativeAI(model=model, temperature=0.2, streaming=True, max_retries=3)
     else:
         raise ValueError(f"Unknown provider: {provider}")
 
@@ -51,13 +53,20 @@ def text_split(minimal_docs):
     return texts_chunk
 
 
-def download_embeddings():
+def download_embeddings(provider: str = "huggingface"):
     """
-    Download and return HuggingFaceEmbeddings model.
+    Download and return embeddings model based on provider.
     """
-    model_name = "sentence-transformers/all-MiniLM-L12-v2"
-    embeddings = HuggingFaceEmbeddings(
-        model_name=model_name,
-       
-    )
+    if provider == "huggingface":
+        from langchain_huggingface import HuggingFaceEmbeddings
+        model_name = "sentence-transformers/all-MiniLM-L12-v2"
+        embeddings = HuggingFaceEmbeddings(
+            model_name=model_name
+        )
+    elif provider == "gemini":
+        from langchain_google_genai import GoogleGenerativeAIEmbeddings
+        embeddings = GoogleGenerativeAIEmbeddings(model="models/embedding-001")
+    else:
+        raise ValueError(f"Unknown embeddings provider: {provider}")
+    
     return embeddings

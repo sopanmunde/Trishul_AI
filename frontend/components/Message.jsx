@@ -51,17 +51,27 @@ export default function Message({ role, content, children }) {
     <div className={cls("flex gap-3 px-1", isUser ? "justify-end" : "justify-start")}>
       {/* AI avatar */}
       {!isUser && (
-        <div className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-xl border border-zinc-200/80 bg-white text-[12px] font-semibold text-zinc-600 shadow-sm dark:border-zinc-700/80 dark:bg-zinc-800 dark:text-zinc-300">
-          ✱
+        <div className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 shadow-sm">
+          <svg
+            className="w-[55%] h-[55%] text-zinc-900 dark:text-zinc-100"
+            viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"
+          >
+            <line x1="12" y1="3" x2="12" y2="21" />
+            <path d="M5 7 C5 3 19 3 19 7" />
+            <line x1="5" y1="7" x2="5" y2="13" />
+            <line x1="19" y1="7" x2="19" y2="13" />
+            <line x1="8" y1="21" x2="16" y2="21" />
+          </svg>
         </div>
       )}
 
       <div
         className={cls(
-          "max-w-[80%] text-[14px] leading-relaxed",
+          "max-w-[85%] text-[14.5px] leading-relaxed relative group/msg transition-all duration-300",
           isUser
-            ? "rounded-2xl rounded-tr-sm bg-zinc-100 px-4 py-2.5 text-zinc-900 shadow-sm dark:bg-zinc-800/80 dark:text-zinc-100"
-            : "rounded-2xl rounded-tl-sm px-1 py-0.5 text-zinc-900 dark:text-zinc-100",
+            ? "rounded-2xl rounded-tr-sm bg-zinc-100/80 px-4 py-3 text-zinc-900 shadow-sm border border-zinc-200/60 dark:bg-zinc-800/40 dark:text-zinc-100 dark:border-zinc-700/50 backdrop-blur-sm hover:border-zinc-300 dark:hover:border-zinc-600 hover:shadow-md transition-all duration-300"
+            : "rounded-2xl rounded-tl-sm bg-white px-4 py-3 text-zinc-900 shadow-sm border border-zinc-200/80 dark:bg-zinc-900/60 dark:text-zinc-100 dark:border-zinc-800/80 backdrop-blur-sm hover:border-zinc-300 dark:hover:border-zinc-700 hover:shadow-md transition-all duration-300",
         )}
       >
         {content !== undefined ? (

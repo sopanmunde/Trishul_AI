@@ -110,10 +110,10 @@ export default function Sidebar({
   selectedId, onSelect, togglePin,
   query, setQuery, searchRef,
   createFolder, createNewChat,
-  templates = [], setTemplates = () => {}, onUseTemplate = () => {},
-  sidebarCollapsed = false, setSidebarCollapsed = () => {},
-  onDeleteConversation = () => {}, onRenameConversation = () => {},
-  user = null, onUserUpdate = () => {},
+  templates = [], setTemplates = () => { }, onUseTemplate = () => { },
+  sidebarCollapsed = false, setSidebarCollapsed = () => { },
+  onDeleteConversation = () => { }, onRenameConversation = () => { },
+  user = null, onUserUpdate = () => { },
 }) {
   const [showCreateFolderModal, setShowCreateFolderModal] = useState(false)
   const [showCreateTemplateModal, setShowCreateTemplateModal] = useState(false)
@@ -134,8 +134,8 @@ export default function Sidebar({
     conversations.filter((c) => c.folder === folderName)
 
   const handleCreateFolder = (name) => createFolder(name)
-  const handleDeleteFolder = (name) => {}
-  const handleRenameFolder = (old, next) => {}
+  const handleDeleteFolder = (name) => { }
+  const handleRenameFolder = (old, next) => { }
 
   const handleCreateTemplate = (data) => {
     if (editingTemplate) {

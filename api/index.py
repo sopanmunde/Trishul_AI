@@ -83,16 +83,36 @@ docsearch = PineconeVectorStore.from_existing_index(
 
 retriever = docsearch.as_retriever(search_kwargs={"k": 3})
 
-# LLM
-chatModel = get_llm(os.getenv("LLM_PROVIDER", "gemini"))
+# Multi-model fallback chain — tries models in order until one succeeds.
+# Only use models confirmed valid on v1beta API (used by langchain-google-genai).
+# gemini-1.5-flash / gemini-1.5-pro are NOT supported on v1beta — do NOT add them.
+GEMINI_FALLBACK_MODELS = [
+    "gemini-2.5-flash",
+    "gemini-2.5-pro",
+    os.getenv("GEMINI_MODEL", "gemini-2.0-flash"),
+    "gemini-2.0-flash-lite",
+    "gemini-flash-latest",
+    "gemini-flash-lite-latest",
+]
+# Deduplicate while preserving order (in case GEMINI_MODEL matches a default)
+seen = set()
+GEMINI_FALLBACK_MODELS = [m for m in GEMINI_FALLBACK_MODELS if not (m in seen or seen.add(m))]
 
 prompt = ChatPromptTemplate.from_messages([
     ("system", system_prompt),
     ("human", "{input}")
 ])
 
-qa_chain = create_stuff_documents_chain(chatModel, prompt)
-rag_chain = create_retrieval_chain(retriever, qa_chain)
+def build_rag_chain(model_name: str):
+    """Build a RAG chain for the given Gemini model name."""
+    llm = ChatGoogleGenerativeAI(model=model_name, temperature=0.2, streaming=True, max_retries=2)
+    qa = create_stuff_documents_chain(llm, prompt)
+    return create_retrieval_chain(retriever, qa)
+
+# Build initial chain with primary model
+print(f"DEBUG: Initializing RAG chain with model: {GEMINI_FALLBACK_MODELS[0]}")
+rag_chain = build_rag_chain(GEMINI_FALLBACK_MODELS[0])
+current_model_index = 0
 
 # Request model
 class QueryRequest(BaseModel):
@@ -213,7 +233,7 @@ async def create_conversation(conv: ConversationCreate, current_user=Depends(get
         del conv_dict["_id"]
     return conv_dict
 
-@app.put("/api/conversations/{conversation_id}")
+@app.put("/api/conversations/{conversation_id}") 
 async def update_conversation(conversation_id: str, conv_update: ConversationUpdate, current_user=Depends(get_current_user)):
     user_id = str(current_user["_id"])
     try:
@@ -309,6 +329,7 @@ async def get_conversation_messages(conversation_id: str, current_user=Depends(g
 
 @app.post("/api/chat")
 async def chat(request: QueryRequest, current_user=Depends(get_current_user)):
+    global rag_chain, current_model_index
     user_id = str(current_user["_id"])
     
     if request.conversation_id:
@@ -321,50 +342,72 @@ async def chat(request: QueryRequest, current_user=Depends(get_current_user)):
         })
 
     async def generate():
+        global rag_chain, current_model_index
         full_answer = ""
         sources = []
-        
-        try:
-            # We are using astream from langchain
-            async for chunk in rag_chain.astream({"input": request.msg}):
-                if "answer" in chunk:
-                    text_chunk = chunk["answer"]
-                    full_answer += text_chunk
-                    yield f"data: {json.dumps({'text': text_chunk})}\n\n"
-                
-                if "context" in chunk:
-                    sources = [{"page_content": doc.page_content, "metadata": doc.metadata} for doc in chunk["context"]]
-            
-            # Save assistant message after streaming completes
-            if request.conversation_id:
-                await messages_collection.insert_one({
-                    "conversation_id": request.conversation_id,
-                    "user_id": user_id,
-                    "role": "assistant",
-                    "content": full_answer,
-                    "sources": sources,
-                    "created_at": datetime.utcnow(),
-                })
-                
-                try:
-                    obj_id = ObjectId(request.conversation_id)
-                    await conversations_collection.update_one(
-                        {"_id": obj_id},
-                        {"$set": {"updated_at": datetime.utcnow()}}
-                    )
-                except InvalidId:
-                    pass
-                    
-            yield f"data: {json.dumps({'done': True, 'sources': sources})}\n\n"
-        except Exception as e:
-            import traceback
-            traceback.print_exc()
-            error_msg = str(e)
-            if "503" in error_msg or "Service Unavailable" in error_msg:
-                friendly_msg = "The AI model is currently experiencing high demand. Please try again in a few moments."
-                yield f"data: {json.dumps({'error': friendly_msg})}\n\n"
-            else:
-                yield f"data: {json.dumps({'error': error_msg})}\n\n"
+        model_attempts = 0
+
+        while model_attempts <= len(GEMINI_FALLBACK_MODELS):
+            full_answer = ""
+            sources = []
+            try:
+                async for chunk in rag_chain.astream({"input": request.msg}):
+                    if "answer" in chunk:
+                        text_chunk = chunk["answer"]
+                        full_answer += text_chunk
+                        yield f"data: {json.dumps({'text': text_chunk})}\n\n"
+                    if "context" in chunk:
+                        sources = [{"page_content": doc.page_content, "metadata": doc.metadata} for doc in chunk["context"]]
+
+                # Save assistant message after streaming completes
+                if request.conversation_id:
+                    await messages_collection.insert_one({
+                        "conversation_id": request.conversation_id,
+                        "user_id": user_id,
+                        "role": "assistant",
+                        "content": full_answer,
+                        "sources": sources,
+                        "created_at": datetime.utcnow(),
+                    })
+                    try:
+                        obj_id = ObjectId(request.conversation_id)
+                        await conversations_collection.update_one(
+                            {"_id": obj_id},
+                            {"$set": {"updated_at": datetime.utcnow()}}
+                        )
+                    except InvalidId:
+                        pass
+
+                yield f"data: {json.dumps({'done': True, 'sources': sources})}\n\n"
+                return  # Success — exit the retry loop
+
+            except Exception as e:
+                import traceback
+                error_msg = str(e)
+                is_quota_error = "429" in error_msg or "ResourceExhausted" in error_msg or "quota" in error_msg.lower()
+                is_not_found = "404" in error_msg or "not found" in error_msg.lower()
+
+                if (is_quota_error or is_not_found) and current_model_index < len(GEMINI_FALLBACK_MODELS) - 1:
+                    # Try next model in the fallback chain
+                    current_model_index += 1
+                    next_model = GEMINI_FALLBACK_MODELS[current_model_index]
+                    print(f"Model quota/error ({GEMINI_FALLBACK_MODELS[current_model_index - 1]}), switching to: {next_model}")
+                    rag_chain = build_rag_chain(next_model)
+                    model_attempts += 1
+                    continue  # Retry with new model
+                else:
+                    # All models exhausted or non-quota error
+                    traceback.print_exc()
+                    if is_quota_error:
+                        friendly_msg = "⚠️ All AI models have exhausted their free-tier quota for today. Quota resets daily — please try again tomorrow, or upgrade your Google AI Studio plan."
+                    elif is_not_found:
+                        friendly_msg = "⚠️ The AI model is temporarily unavailable. Please try again shortly."
+                    elif "503" in error_msg or "Service Unavailable" in error_msg:
+                        friendly_msg = "⚠️ The AI model is experiencing high demand. Please try again in a few moments."
+                    else:
+                        friendly_msg = f"An error occurred: {error_msg}"
+                    yield f"data: {json.dumps({'error': friendly_msg})}\n\n"
+                    return
 
     return StreamingResponse(generate(), media_type="text/event-stream")
 

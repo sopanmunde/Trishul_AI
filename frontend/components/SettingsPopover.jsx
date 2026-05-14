@@ -48,7 +48,7 @@ function MenuItem({ icon: Icon, label, iconBg = "bg-zinc-100 dark:bg-zinc-800", 
 }
 
 /* ── main component ──────────────────────────────────────────────────────── */
-export default function SettingsPopover({ children, onUserUpdate = () => {} }) {
+export default function SettingsPopover({ children, onUserUpdate = () => { } }) {
   const [open, setOpen] = useState(false)
   const [isProfileOpen, setIsProfileOpen] = useState(false)
   const [user, setUser] = useState(null)
@@ -61,7 +61,7 @@ export default function SettingsPopover({ children, onUserUpdate = () => {} }) {
     })
       .then((r) => r.ok ? r.json() : null)
       .then((data) => data && setUser(data))
-      .catch(() => {})
+      .catch(() => { })
   }, [open])
 
   const initials = user
@@ -89,7 +89,7 @@ export default function SettingsPopover({ children, onUserUpdate = () => {} }) {
         <PopoverTrigger asChild>{children}</PopoverTrigger>
 
         <PopoverContent
-          className="w-64 p-0 overflow-hidden rounded-2xl border border-zinc-200/70 bg-white shadow-2xl dark:border-zinc-800/70 dark:bg-zinc-950"
+          className="w-64 p-0 overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-xl dark:border-zinc-800 dark:bg-zinc-950"
           align="end"
           side="right"
           sideOffset={10}
@@ -103,41 +103,26 @@ export default function SettingsPopover({ children, onUserUpdate = () => {} }) {
                 transition={{ duration: 0.15, ease: "easeOut" }}
               >
                 {/* ── Profile header ── */}
-                <div className="relative overflow-hidden px-3 py-3 border-b border-zinc-100 dark:border-zinc-800/80">
-                  {/* Animated gradient blob */}
-                  <div
-                    className="absolute inset-0 opacity-[0.07] dark:opacity-[0.12]"
-                    style={{
-                      background: "radial-gradient(ellipse at 80% 0%, #8b5cf6 0%, #3b82f6 50%, transparent 70%)",
-                    }}
-                  />
-                  <div className="relative flex items-center gap-3">
-                    {/* Avatar with animated ring */}
+                <div className="px-3.5 py-4 border-b border-zinc-100 dark:border-zinc-800/80 bg-zinc-50/50 dark:bg-zinc-900/50">
+                  <div className="flex items-center gap-3">
                     <div className="relative shrink-0">
-                      <div className="absolute -inset-0.5 rounded-xl bg-gradient-to-br from-violet-500 to-blue-500 opacity-60 blur-[3px]" />
-                      <div className="relative flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-violet-500 to-blue-600 text-[13px] font-bold text-white shadow-md">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-zinc-900 dark:bg-zinc-800 text-[14px] font-bold text-white shadow-sm border border-zinc-200 dark:border-zinc-700">
                         {initials}
                       </div>
-                      {/* Online dot */}
-                      <div className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full border-2 border-white dark:border-zinc-950 bg-emerald-500" />
+                      <div className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-white dark:border-zinc-950 bg-emerald-500" />
                     </div>
 
                     <div className="min-w-0 flex-1">
-                      <div className="truncate text-[13px] font-semibold text-zinc-900 dark:text-zinc-100">{displayName}</div>
-                      {email && <div className="truncate text-[11px] text-zinc-500 dark:text-zinc-500">{email}</div>}
+                      <div className="truncate text-[13.5px] font-semibold text-zinc-900 dark:text-zinc-100 leading-none mb-1">{displayName}</div>
+                      {email && <div className="truncate text-[11px] text-zinc-500 dark:text-zinc-500 font-medium leading-none">{email}</div>}
                     </div>
                   </div>
 
-                  {/* Plan badge */}
-                  <div className="relative mt-2.5 flex items-center gap-2 rounded-lg border border-zinc-100 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 px-2.5 py-1.5">
-                    <div className="flex h-4 w-4 items-center justify-center rounded-md bg-zinc-200 dark:bg-zinc-700">
-                      <Zap className="h-2.5 w-2.5 text-zinc-600 dark:text-zinc-300" />
-                    </div>
-                    <span className="text-[11px] font-medium text-zinc-600 dark:text-zinc-400">Free plan</span>
-                    <button
-                      className="ml-auto text-[10px] font-semibold text-violet-600 dark:text-violet-400 hover:underline underline-offset-2 transition-colors"
-                    >
-                      Upgrade →
+                  <div className="mt-3.5 flex items-center gap-2 rounded-xl border border-zinc-200/60 dark:border-zinc-800 bg-white dark:bg-zinc-900 px-3 py-2 shadow-sm">
+                    <Zap className="h-3 w-3 text-amber-500 fill-amber-500" />
+                    <span className="text-[11px] font-semibold text-zinc-700 dark:text-zinc-300">Free plan</span>
+                    <button className="ml-auto text-[10px] font-bold text-zinc-900 dark:text-white bg-zinc-100 dark:bg-zinc-800 px-2 py-0.5 rounded-lg hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors">
+                      Upgrade
                     </button>
                   </div>
                 </div>

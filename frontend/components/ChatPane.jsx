@@ -229,7 +229,7 @@ const ChatPane = forwardRef(function ChatPane(
                         <div
                           className={cls(
                             "mt-1.5 flex items-center gap-1 opacity-0 transition-opacity duration-150 group-hover:opacity-100",
-                            m.role === "user" ? "justify-end pr-1" : "justify-start pl-10"
+                            m.role === "user" ? "justify-end pr-1" : "justify-start pl-12"
                           )}
                         >
                           {/* Copy */}

@@ -1,4 +1,4 @@
-from passlib.context import CryptContext
+import bcrypt
 from jose import JWTError, jwt
 from datetime import datetime, timedelta
 from fastapi import HTTPException, status, Depends
@@ -11,7 +11,6 @@ import hashlib
 
 load_dotenv()
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/login")
 
 # SECRET_KEY = os.getenv("SECRET_KEY")
@@ -23,13 +22,18 @@ ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", 30))
 
 def get_password_hash(password: str) -> str:
     # Pre-hash to avoid bcrypt 72-byte limit
-    password = hashlib.sha256(password.encode()).hexdigest()
-    return pwd_context.hash(password)
+    password_hash = hashlib.sha256(password.encode()).hexdigest()
+    salt = bcrypt.gensalt()
+    hashed = bcrypt.hashpw(password_hash.encode('utf-8'), salt)
+    return hashed.decode('utf-8')
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
-    plain_password = hashlib.sha256(plain_password.encode()).hexdigest()
-    return pwd_context.verify(plain_password, hashed_password)
+    plain_password_hash = hashlib.sha256(plain_password.encode()).hexdigest()
+    try:
+        return bcrypt.checkpw(plain_password_hash.encode('utf-8'), hashed_password.encode('utf-8'))
+    except ValueError:
+        return False
 
 async def get_user(email: str):
     user = await users_collection.find_one({"email": email})

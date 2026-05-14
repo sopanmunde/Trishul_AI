@@ -23,7 +23,7 @@ export default function AIAssistantUI() {
       document.documentElement.setAttribute("data-theme", theme)
       document.documentElement.style.colorScheme = theme
       localStorage.setItem("theme", theme)
-    } catch {}
+    } catch { }
   }, [theme])
 
   useEffect(() => {
@@ -36,7 +36,7 @@ export default function AIAssistantUI() {
       }
       media.addEventListener("change", listener)
       return () => media.removeEventListener("change", listener)
-    } catch {}
+    } catch { }
   }, [])
 
   // Auth guard: redirect to login if no token is present
@@ -46,7 +46,7 @@ export default function AIAssistantUI() {
       if (!token) {
         window.location.href = "/login"
       }
-    } catch {}
+    } catch { }
   }, [])
 
   const [sidebarOpen, setSidebarOpen] = useState(false)
@@ -61,7 +61,7 @@ export default function AIAssistantUI() {
   useEffect(() => {
     try {
       localStorage.setItem("sidebar-collapsed", JSON.stringify(collapsed))
-    } catch {}
+    } catch { }
   }, [collapsed])
 
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
@@ -76,7 +76,7 @@ export default function AIAssistantUI() {
   useEffect(() => {
     try {
       localStorage.setItem("sidebar-collapsed-state", JSON.stringify(sidebarCollapsed))
-    } catch {}
+    } catch { }
   }, [sidebarCollapsed])
 
   const [conversations, setConversations] = useState([])
@@ -143,11 +143,11 @@ export default function AIAssistantUI() {
         });
         if (res.ok) {
           const data = await res.json();
-          setConversations(data.map(c => ({ 
-            ...c, 
+          setConversations(data.map(c => ({
+            ...c,
             updatedAt: c.updated_at || c.updatedAt || new Date().toISOString(),
-            messages: c.messages || [], 
-            messageCount: c.messages?.length || 0 
+            messages: c.messages || [],
+            messageCount: c.messages?.length || 0
           })));
           setIsConversationsLoaded(true);
         }
@@ -273,9 +273,9 @@ export default function AIAssistantUI() {
       const apiUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000/api"
       const res = await fetch(`${apiUrl}/conversations/${id}`, {
         method: "PUT",
-        headers: { 
+        headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}` 
+          Authorization: `Bearer ${token}`
         },
         body: JSON.stringify({ title: newTitle })
       })
@@ -314,7 +314,7 @@ export default function AIAssistantUI() {
     setConversations((prev) =>
       prev.map((c) => {
         if (c.id !== convId) return c;
-        const msgs = [...(c.messages || []), userMsg, initialAsstMsg];
+        const msgs = [...(c.messages || []), userMsg];
         return {
           ...c,
           messages: msgs,
@@ -343,9 +343,6 @@ export default function AIAssistantUI() {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      setIsThinking(false);
-      setThinkingConvId(null);
-
       const reader = response.body.getReader();
       const decoder = new TextDecoder("utf-8");
       let done = false;
@@ -368,11 +365,27 @@ export default function AIAssistantUI() {
                   throw new Error(data.error);
                 }
                 if (data.text) {
+                  // Turn off thinking once we start receiving text
+                  setIsThinking(false);
+                  setThinkingConvId(null);
+
                   textContent += data.text;
                   setConversations((prev) =>
                     prev.map((c) => {
                       if (c.id !== convId) return c;
-                      const msgs = c.messages.map(m => m.id === asstMsgId ? { ...m, content: textContent } : m);
+
+                      // Find if we already have the assistant message in this conversation
+                      const hasAsstMsg = c.messages.some(m => m.id === asstMsgId);
+
+                      let msgs;
+                      if (!hasAsstMsg) {
+                        // Insert new assistant message if it's the first chunk
+                        msgs = [...c.messages, { id: asstMsgId, role: "assistant", content: textContent, createdAt: new Date().toISOString() }];
+                      } else {
+                        // Update existing assistant message
+                        msgs = c.messages.map(m => m.id === asstMsgId ? { ...m, content: textContent } : m);
+                      }
+
                       return { ...c, messages: msgs, preview: textContent.slice(0, 80) };
                     })
                   );
