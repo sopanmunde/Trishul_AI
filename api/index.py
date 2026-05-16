@@ -1,4 +1,5 @@
 import asyncio
+from contextlib import asynccontextmanager
 from bson import ObjectId
 from fastapi import FastAPI, HTTPException, status, Depends, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
@@ -34,11 +35,56 @@ from auth import (
 
 
 # route = APIRouter(prefix="/auth", tags=["auth"])
+# Init global variables for RAG
+embeddings = None
+docsearch = None
+retriever = None
+rag_chain = None
+current_model_index = 0
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """
+    Handles startup and shutdown events.
+    Expensive initializations are moved here to prevent Render deployment timeouts.
+    """
+    global embeddings, docsearch, retriever, rag_chain, current_model_index
+    
+    print("INFO: Starting application initialization...")
+    
+    try:
+        # 1. Init embeddings
+        embeddings = download_embeddings()
+        
+        # 2. Init vector store
+        index_name = "trishul-ai"
+        docsearch = PineconeVectorStore.from_existing_index(
+            index_name=index_name,
+            embedding=embeddings
+        )
+        
+        # 3. Init retriever
+        retriever = docsearch.as_retriever(search_kwargs={"k": 3})
+        
+        # 4. Build initial chain
+        print(f"DEBUG: Initializing RAG chain with model: {GEMINI_FALLBACK_MODELS[0]}")
+        rag_chain = build_rag_chain(GEMINI_FALLBACK_MODELS[0])
+        current_model_index = 0
+        
+        print("INFO: Application initialization complete.")
+    except Exception as e:
+        print(f"ERROR: Failed to initialize application: {e}")
+        import traceback
+        traceback.print_exc()
+        # We don't raise here so the server can still start and show health check failures
+    
+    yield
+
 app = FastAPI(
     title="Authentication API",
     description="Secure authentication system with JWT",
     version="1.0.0",
-    # lifespan=lifespan
+    lifespan=lifespan
 )
 # app.include_router(entry_root)
 # app.include_router(auth)
@@ -71,17 +117,10 @@ GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 os.environ["PINECONE_API_KEY"] = PINECONE_API_KEY
 os.environ["GOOGLE_API_KEY"] = GOOGLE_API_KEY
 
-# Init embeddings + vector store
-embeddings = download_embeddings()
-
-index_name = "trishul-ai"
-
-docsearch = PineconeVectorStore.from_existing_index(
-    index_name=index_name,
-    embedding=embeddings
-)
-
-retriever = docsearch.as_retriever(search_kwargs={"k": 3})
+# (Initialized in lifespan)
+# embeddings = download_embeddings()
+# docsearch = PineconeVectorStore.from_existing_index(...)
+# retriever = docsearch.as_retriever(...)
 
 # Multi-model fallback chain — tries models in order until one succeeds.
 # Only use models confirmed valid on v1beta API (used by langchain-google-genai).
@@ -109,10 +148,9 @@ def build_rag_chain(model_name: str):
     qa = create_stuff_documents_chain(llm, prompt)
     return create_retrieval_chain(retriever, qa)
 
-# Build initial chain with primary model
-print(f"DEBUG: Initializing RAG chain with model: {GEMINI_FALLBACK_MODELS[0]}")
-rag_chain = build_rag_chain(GEMINI_FALLBACK_MODELS[0])
-current_model_index = 0
+# (Initialized in lifespan)
+# rag_chain = build_rag_chain(GEMINI_FALLBACK_MODELS[0])
+# current_model_index = 0
 
 # Request model
 class QueryRequest(BaseModel):
@@ -127,6 +165,15 @@ class QueryResponse(BaseModel):
 @app.get("/")
 async def root():
     return {"message": "Authentication API is running", "status": "healthy"}
+
+@app.get("/api/health")
+async def health():
+    return {
+        "status": "healthy" if rag_chain is not None else "initializing",
+        "rag_initialized": rag_chain is not None,
+        "embeddings_loaded": embeddings is not None,
+        "vector_store_ready": docsearch is not None
+    }
 
 
 @app.post("/api/register")
@@ -330,6 +377,13 @@ async def get_conversation_messages(conversation_id: str, current_user=Depends(g
 @app.post("/api/chat")
 async def chat(request: QueryRequest, current_user=Depends(get_current_user)):
     global rag_chain, current_model_index
+    
+    if rag_chain is None:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE, 
+            detail="AI system is still initializing. Please wait a few seconds and try again."
+        )
+        
     user_id = str(current_user["_id"])
     
     if request.conversation_id:
@@ -420,6 +474,12 @@ async def upload_document(
     import os
     from langchain_community.document_loaders import PyPDFLoader
     from langchain_text_splitters import RecursiveCharacterTextSplitter
+    
+    if docsearch is None:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE, 
+            detail="Vector store is still initializing. Please wait a few seconds and try again."
+        )
     
     if not file.filename.endswith('.pdf'):
         raise HTTPException(status_code=400, detail="Only PDF files are supported currently")
