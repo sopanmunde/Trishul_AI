@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useRef, useEffect } from "react"
+import { useState } from "react"
 import { FolderIcon, ChevronRight, ChevronDown, MoreHorizontal, Edit3, Trash2 } from "lucide-react"
 import ConversationRow from "./ConversationRow"
 import { motion, AnimatePresence } from "framer-motion"
@@ -17,12 +17,18 @@ export default function FolderRow({
   onRenameFolder,
   onDeleteConversation,
   onRenameConversation,
+  // Controlled accordion — parent controls open state
+  isExpanded,
+  onToggle,
 }) {
-  const [isExpanded, setIsExpanded] = useState(false)
   const [open, setOpen] = useState(false)
 
+  // Support both controlled (isExpanded/onToggle) and local state
+  const [localExpanded, setLocalExpanded] = useState(false)
+  const expanded = isExpanded !== undefined ? isExpanded : localExpanded
   const handleToggle = () => {
-    setIsExpanded(!isExpanded)
+    if (onToggle) onToggle()
+    else setLocalExpanded((v) => !v)
   }
 
   const handleRename = (e) => {
@@ -51,7 +57,7 @@ export default function FolderRow({
       <div className="flex items-center justify-between rounded-lg px-2 py-1.5 text-sm hover:bg-zinc-200/50 dark:hover:bg-zinc-800/50 transition-colors">
         <button onClick={handleToggle} className="flex items-center gap-2 flex-1 text-left min-w-0">
           <div className="flex h-4 w-4 shrink-0 items-center justify-center">
-            {isExpanded ? (
+            {expanded ? (
               <ChevronDown className="h-3 w-3 text-zinc-500" />
             ) : (
               <ChevronRight className="h-3 w-3 text-zinc-500" />
@@ -106,7 +112,7 @@ export default function FolderRow({
       </div>
 
       <AnimatePresence>
-        {isExpanded && (
+        {expanded && (
           <motion.div
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: "auto", opacity: 1 }}

@@ -145,8 +145,11 @@ export default function AIAssistantUI() {
           setConversations(data.map(c => ({
             ...c,
             updatedAt: c.updated_at || c.updatedAt || new Date().toISOString(),
-            messages: c.messages || [],
-            messageCount: c.messages?.length || 0
+            // messages are NOT included in the list response — they're lazy-loaded
+            messages: [],
+            // Use the messageCount returned by the API (not c.messages.length which is always 0)
+            messageCount: c.messageCount || 0,
+            preview: c.preview || ""
           })));
           setIsConversationsLoaded(true);
         }
@@ -159,19 +162,16 @@ export default function AIAssistantUI() {
 
   useEffect(() => {
     if (isConversationsLoaded && !selectedId) {
-      if (conversations.length === 0) {
-        setSelectedId("new")
-      } else {
-        setSelectedId(conversations[0].id)
-      }
+      // Always open a new conversation on login
+      setSelectedId("new")
     }
-  }, [isConversationsLoaded, selectedId, conversations])
+  }, [isConversationsLoaded, selectedId])
 
   useEffect(() => {
     if (!selectedId || selectedId === "new") return;
     const conv = conversations.find(c => c.id === selectedId);
-    if (conv && (!conv.messages || conv.messages.length === 0) && conv.messageCount !== 0) {
-      // Fetch messages if not already fetched
+    // Load messages when: conversation exists, has no messages loaded yet, and has messages in DB
+    if (conv && conv.messages.length === 0 && conv.messageCount > 0) {
       const fetchMessages = async () => {
         const token = localStorage.getItem("token");
         if (!token) return;
@@ -182,7 +182,11 @@ export default function AIAssistantUI() {
           });
           if (res.ok) {
             const msgs = await res.json();
-            setConversations(prev => prev.map(c => c.id === selectedId ? { ...c, messages: msgs, messageCount: msgs.length, preview: msgs.length > 0 ? msgs[msgs.length - 1].content.slice(0, 80) : c.preview } : c));
+            setConversations(prev => prev.map(c =>
+              c.id === selectedId
+                ? { ...c, messages: msgs, messageCount: msgs.length, preview: msgs.length > 0 ? msgs[msgs.length - 1].content.slice(0, 120) : c.preview }
+                : c
+            ));
           }
         } catch (err) {
           console.error(err);
@@ -190,12 +194,14 @@ export default function AIAssistantUI() {
       };
       fetchMessages();
     }
-  }, [selectedId, conversations]);
+  }, [selectedId]);
 
   const filtered = useMemo(() => {
     if (!query.trim()) return conversations
     const q = query.toLowerCase()
-    return conversations.filter((c) => c.title.toLowerCase().includes(q) || c.preview.toLowerCase().includes(q))
+    return conversations.filter((c) =>
+      c.title?.toLowerCase().includes(q) || (c.preview || "").toLowerCase().includes(q)
+    )
   }, [conversations, query])
 
   const pinned = filtered.filter((c) => c.pinned).sort((a, b) => (a.updatedAt < b.updatedAt ? 1 : -1))
@@ -263,6 +269,19 @@ export default function AIAssistantUI() {
     if (!name) return
     if (folders.some((f) => f.name.toLowerCase() === name.toLowerCase())) return alert("Folder already exists.")
     setFolders((prev) => [...prev, { id: Math.random().toString(36).slice(2), name }])
+  }
+
+  function deleteFolder(name) {
+    setFolders((prev) => prev.filter((f) => f.name !== name))
+    // Move conversations in that folder back to root (clear their folder)
+    setConversations((prev) => prev.map((c) => c.folder === name ? { ...c, folder: null } : c))
+  }
+
+  function renameFolder(oldName, newName) {
+    if (!newName || !newName.trim()) return
+    if (folders.some((f) => f.name.toLowerCase() === newName.toLowerCase())) return alert("Folder already exists.")
+    setFolders((prev) => prev.map((f) => f.name === oldName ? { ...f, name: newName } : f))
+    setConversations((prev) => prev.map((c) => c.folder === oldName ? { ...c, folder: newName } : c))
   }
 
   async function sendMessage(convId, content) {
@@ -381,7 +400,8 @@ export default function AIAssistantUI() {
                   textContent += data.text;
                   setConversations((prev) =>
                     prev.map((c) => {
-                      if (c.id !== convId) return c;
+                      // IMPORTANT: use targetConvId (the real DB id), not convId (which may be "new")
+                      if (c.id !== targetConvId) return c;
 
                       // Find if we already have the assistant message in this conversation
                       const hasAsstMsg = c.messages.some(m => m.id === asstMsgId);
@@ -402,7 +422,8 @@ export default function AIAssistantUI() {
                 if (data.done) {
                   setConversations((prev) =>
                     prev.map((c) => {
-                      if (c.id !== convId) return c;
+                      // IMPORTANT: use targetConvId (the real DB id)
+                      if (c.id !== targetConvId) return c;
                       const msgs = c.messages.map(m => m.id === asstMsgId ? { ...m, sources: data.sources } : m);
                       return { ...c, messages: msgs };
                     })
@@ -497,6 +518,8 @@ export default function AIAssistantUI() {
         setQuery={setQuery}
         searchRef={searchRef}
         createFolder={createFolder}
+        deleteFolder={deleteFolder}
+        renameFolder={renameFolder}
         createNewChat={createNewChat}
         templates={templates}
         setTemplates={setTemplates}

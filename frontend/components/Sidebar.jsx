@@ -102,7 +102,7 @@ export default function Sidebar({
   folders, folderCounts,
   selectedId, onSelect, togglePin,
   query, setQuery, searchRef,
-  createFolder, createNewChat,
+  createFolder, deleteFolder, renameFolder, createNewChat,
   templates = [], setTemplates = () => { }, onUseTemplate = () => { },
   sidebarCollapsed = false, setSidebarCollapsed = () => { },
   onDeleteConversation = () => { }, onRenameConversation = () => { },
@@ -111,6 +111,7 @@ export default function Sidebar({
   const [editingTemplate, setEditingTemplate] = useState(null)
   const [mounted, setMounted] = useState(false)
   const [collapsedGroups, setCollapsedGroups] = useState({})
+  const [expandedFolder, setExpandedFolder] = useState(null)
 
   useEffect(() => {
     const timer = requestAnimationFrame(() => setMounted(true))
@@ -125,8 +126,8 @@ export default function Sidebar({
     conversations.filter((c) => c.folder === folderName)
 
   const handleCreateFolder = (name) => createFolder(name)
-  const handleDeleteFolder = (name) => { }
-  const handleRenameFolder = (old, next) => { }
+  const handleDeleteFolder = (name) => deleteFolder?.(name)
+  const handleRenameFolder = (old, next) => renameFolder?.(old, next)
 
   const handleCreateTemplate = (data) => {
     if (editingTemplate) {
@@ -340,6 +341,8 @@ export default function Sidebar({
                     onRenameFolder={handleRenameFolder}
                     onDeleteConversation={onDeleteConversation}
                     onRenameConversation={onRenameConversation}
+                    isExpanded={expandedFolder === f.id}
+                    onToggle={() => setExpandedFolder(prev => prev === f.id ? null : f.id)}
                   />
                 ))}
               </SidebarSection>

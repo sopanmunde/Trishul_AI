@@ -260,11 +260,31 @@ async def update_me(user_update: UserUpdate, current_user = Depends(get_current_
 async def get_conversations(current_user=Depends(get_current_user)):
     user_id = str(current_user["_id"])
     conversations = await conversations_collection.find({"user_id": user_id}).sort("updated_at", -1).to_list(1000)
+    
+    result = []
     for c in conversations:
-        c["id"] = str(c["_id"])
+        conv_id = str(c["_id"])
+        c["id"] = conv_id
         if "_id" in c:
             del c["_id"]
-    return conversations
+        
+        # Fetch message count and last message preview
+        msg_count = await messages_collection.count_documents({"conversation_id": conv_id})
+        c["messageCount"] = msg_count
+        
+        # Get last message for preview
+        last_msgs = await messages_collection.find(
+            {"conversation_id": conv_id}
+        ).sort("created_at", -1).limit(1).to_list(1)
+        
+        if last_msgs:
+            c["preview"] = last_msgs[0].get("content", "")[:120]
+        else:
+            c["preview"] = ""
+        
+        result.append(c)
+    
+    return result
 
 @app.post("/api/conversations")
 async def create_conversation(conv: ConversationCreate, current_user=Depends(get_current_user)):
@@ -514,8 +534,5 @@ async def upload_document(
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(
-        "index:app",    
-        host="0.0.0.0",   
-        port=8000,       
-        reload=True,
+        "index:app"
         )

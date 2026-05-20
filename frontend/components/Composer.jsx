@@ -62,7 +62,7 @@ const Composer = forwardRef(function Composer({ onSend, busy }, ref) {
   const hasContent = value.trim().length > 0
 
   return (
-    <div className="px-3 pb-5 pt-2">
+    <div className="px-3 pb-2 pt-2">
       {/* Input card */}
       <div
         className={cls(

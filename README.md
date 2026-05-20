@@ -1,181 +1,174 @@
-# 🩺 Trishul-AI Medical Chatbot
+# 🩺 Trishul-AI: AI-Powered Medical Chatbot
 
-An AI-powered medical chatbot built using **Retrieval-Augmented Generation (RAG)** that provides context-aware, non-diagnostic responses by retrieving relevant medical information from a vector database.
-
----
-
-## 🚀 Overview
-
-Trishul-AI is designed to assist users with general medical queries by combining **semantic search** and **Large Language Models (LLMs)**.  
-The system retrieves relevant medical documents and generates safe, contextual responses.
+An intelligent, context-aware medical chatbot built using a **Retrieval-Augmented Generation (RAG)** pipeline. Trishul-AI retrieves contextually relevant medical facts from a vector database and uses Large Language Models (LLMs) to synthesize safe, non-diagnostic answers. It features a responsive, premium user interface with user authentication, custom conversation management, templates, and folder structures.
 
 ---
 
-## 🎯 Problem Statement
+## 📸 System Screenshots
 
-Accessing reliable medical information quickly can be challenging.  
-This project aims to provide **accurate, context-aware, and safe responses** using AI without replacing professional medical advice.
+### 🌐 Landing Page
+<div align="center">
+  <img src="frontend/public/landing_page.png" width="800" alt="Trishul-AI Landing Page" />
+</div>
 
----
+### 🔑 Authentication (Sign In & Register)
+<div align="center">
+  <table>
+    <tr>
+      <td align="center"><b>Sign In</b></td>
+      <td align="center"><b>Create Account</b></td>
+    </tr>
+    <tr>
+      <td><img src="frontend/public/login_page.png" width="390" alt="Sign In" /></td>
+      <td><img src="frontend/public/signup_page.png" width="390" alt="Create Account" /></td>
+    </tr>
+  </table>
+</div>
 
-## ✨ Features
+### 💬 Chat Assistant Dashboard
+<div align="center">
+  <img src="frontend/public/chat_dashboard.png" width="800" alt="Chat Dashboard" />
+</div>
 
-- 🔍 Retrieval-Augmented Generation (RAG)
-- 🧠 Semantic search using vector embeddings
-- ⚡ FastAPI backend for real-time AI inference
-- 💬 Context-aware chatbot responses
-- 🔐 Authentication-enabled frontend (Next.js)
-- 📊 Handles large-scale medical document datasets
-- ⚠️ Built-in medical disclaimers for safe usage
-
----
-
-# Chatbot UI
-Landing Page:
-
-![img](frontend/public/ai-assist.png)
-
-Chat UI:
-
-![img](frontend/public/chatbot-ui.png)
-
-
-## 🛠️ Tech Stack
-
-### AI / ML
-- LangChain
-- Google Gemini
-- NLP techniques
-- RAG techniuies
-
-### Backend
-- FastAPI
-- Python
-
-### Frontend
-- Next.js
-- JWT Authentication
-
-### Database
-- Pinecone (Vector Database)
-- MongoDB
-
-### Tools
-- Pandas, NumPy
-- Git, GitHub
+### 👤 Profile & Context Options
+<div align="center">
+  <img src="frontend/public/chat_dashboard_menu.png" width="800" alt="User Settings Menu" />
+</div>
 
 ---
 
-## 🧠 System Architecture
+## 🧠 Project Architecture & Workflow
 
-The system follows a **Retrieval-Augmented Generation (RAG)** pipeline combining semantic search with LLM-based response generation.
+Trishul-AI utilizes a modern hybrid architecture separating vector search retrieval, document chunk storage, fast microservice endpoints, and a responsive frontend dashboard.
 
-### 🔄 Architecture Flow
-```bash
-User Query  
-↓  
-Frontend (Next.js UI)  
-↓  
-FastAPI Backend (API Layer)  
-↓  
-LangChain Orchestrator  
-↓  
-Embedding Model (Text → Vector)  
-↓  
-Pinecone Vector Database (Similarity Search)  
-↓  
-Top-K Relevant Documents Retrieved  
-↓  
-LLM (OpenAI / LLaMA)  
-↓  
-Context-Aware Response Generation  
-↓  
-Response Sent to User  
+### 🔄 RAG Pipeline Flowchart
+<div align="center">
+  <img src="frontend/public/pipeline_flow.png" width="550" alt="Trishul-AI Development & RAG Pipeline" />
+</div>
+
+### 🏗️ Technical Architecture Diagram
+
 ```
+                 +-------------------------------------------------------+
+                 |                       FRONTEND                        |
+                 |                       (Next.js)                       |
+                 +---------------------------+---------------------------+
+                                             |
+                                   HTTP API & SSE Stream
+                                             v
+                 +-------------------------------------------------------+
+                 |                        BACKEND                        |
+                 |                   (FastAPI / Python)                  |
+                 +-------+-------------------+-------------------+-------+
+                         |                   |                   |
+                         v                   v                   v
+                 +---------------+   +---------------+   +---------------+
+                 |  MongoDB DB   |   |   LangChain   |   |   HuggingFace |
+                 | (Users, Chats |   |  Orchestrator |   |   Embeddings  |
+                 | & Templates)  |   +-------+-------+   | (MiniLM-L6-v2)|
+                 +---------------+           |           +-------+-------+
+                                             v                   |
+                                     Document Context            | Query Vectors
+                                             v                   v
+                                     +---------------+-----------+---+
+                                     |   Pinecone Vector Database    |
+                                     |       (Trishul-AI Index)      |
+                                     +---------------+---------------+
+                                                     |
+                                            Synthesis Generation
+                                                     v
+                                             +-------+-------+
+                                             |  Google GenAI |
+                                             | (Gemini-2.5)  |
+                                             +---------------+
+```
+
+### 🔄 End-to-End Execution Flow
+1. **Query Submission**: The user enters a question into the `Composer` component on the Next.js frontend.
+2. **API Dispatch**: The query is sent as a POST request to `/api/chat` with JWT bearer authorization headers.
+3. **Query Embedding**: The FastAPI server receives the query and generates its semantic embedding vector using `sentence-transformers/all-MiniLM-L6-v2`.
+4. **Context Retrieval**: LangChain retrieves the top-K (~3) matching chunks from the `trishul-ai` vector index in Pinecone.
+5. **Prompt Injection**: The retrieved text chunks are combined with a system prompt template containing safety constraints, context definitions, and formatting rules.
+6. **Streaming Generation**: The prompt is processed by the Google GenAI SDK (`gemini-2.5-flash`) via LangChain, streaming the generated assistant response back to the client via Server-Sent Events (SSE).
+7. **Chat Persistence**: The client updates the conversation thread in real-time, saving the message logs in MongoDB.
+
 ---
 
-## Architecture Diagram
+## 🛠️ Tech Stack & Dependencies
 
-![img](frontend/public/architecture.png)
+### 🤖 Artificial Intelligence & RAG
+- **Orchestration**: LangChain, LangChain Core, LangChain Community
+- **LLM Engine**: Google GenAI (`gemini-2.5-flash`)
+- **Embeddings**: HuggingFace Sentence-Transformers (`all-MiniLM-L6-v2`)
+- **Vector DB**: Pinecone Serverless (AWS `us-east-1` spec)
 
-## 📊 Data
+### ⚡ Backend Server
+- **Framework**: FastAPI (Python)
+- **ASGI Server**: Uvicorn
+- **Security**: JWT tokens, bcrypt pass hashing, Python-Jose (for authentication)
+- **Async Client**: Motor (MongoDB Async Driver) & HTTPX
 
-- 📄 3,000+ medical documents
-- Sources: publicly available medical articles and guidelines
-- Preprocessing:
-  - Text cleaning
-  - Tokenization
-  - Chunking
-  - Embedding generation
-
----
-
-## ⚡ Performance Metrics
-
-- 🎯 Retrieval Accuracy: ~85%  
-- ⏱️ API Response Latency: <2 seconds  
-- 👥 Tested with: 50+ users  
-- 📈 Optimized vector search for faster retrieval  
+### 💻 Frontend Client
+- **Framework**: Next.js 15 (React 19 & TypeScript)
+- **Styling**: TailwindCSS & Framer Motion
+- **Markdown Handling**: ReactMarkdown, RehypeHighlight, RemarkGfm
+- **Icons**: Lucide React
+- **Lock & Package Manager**: Bun
 
 ---
 
----
+## ⚙️ Installation & Development Setup
 
-## ⚙️ Installation & Setup
-
-### 1️⃣ Clone Repository
-
+### 1️⃣ Clone the Repository
 ```bash
 git clone https://github.com/sopanmunde/Trishul_AI.git
-cd trishul_ai
-
+cd Trishul_AI
 ```
 
-### Backend Setup
+### 2️⃣ Backend Configuration (FastAPI)
+1. **Navigate to backend and install requirements**:
+   ```bash
+   cd api
+   pip install -r requirements.txt
+   ```
+2. **Create a `.env` file inside the `api/` directory**:
+   ```env
+   GOOGLE_API_KEY=your_google_gemini_api_key
+   PINECONE_API_KEY=your_pinecone_vector_db_api_key
+   MONGODB_URL=mongodb+srv://...your_mongodb_uri
+   DATABASE_NAME=trishul_db
+   SECRET_KEY=your_jwt_signing_secret_key
+   ACCESS_TOKEN_EXPIRE_MINUTES=1440
+   ```
+3. **Populate Pinecone Vector Index**:
+   Ensure you have PDF files placed inside `api/data/` folder, then run the indexing pipeline script:
+   ```bash
+   python store_index.py
+   ```
+4. **Start Backend API Dev Server**:
+   ```bash
+   python index.py
+   ```
+   *The server runs locally at: `http://127.0.0.1:8000`*
 
-```bash
-cd backend
-pip install -r requirements.txt
-```
+### 3️⃣ Frontend Configuration (Next.js)
+1. **Navigate to frontend and install node packages**:
+   ```bash
+   cd ../frontend
+   bun install
+   ```
+2. **Create a `.env` file inside the `frontend/` directory**:
+   ```env
+   NEXT_PUBLIC_API_BASE_URL=http://127.0.0.1:8000
+   ```
+3. **Start Frontend Client Server**:
+   ```bash
+   bun dev
+   ```
+   *Open browser client at: `http://localhost:3000`*
 
-### Environment Varibles
+---
 
-```bash
-GOOGLE_API_KEY=your_api_key
-PINECONE_API_KEY=your_api_key
-MONGODB_URL=your_monogodb_connection_url
-DATABASE_NAME=your_database_name
-SECRET_KEY=your_secret_key
-ACCESS_TOKEN_EXPIRE_MINUTES=minutes
-```
-### Run Backend Server
+## 🩺 Medical & Safety Disclaimer
 
-```bash
-python main.py
-```
-Backend run at:
-
-       http://localhost:8000
-
-### Frontend
-
-```bash
-cd frontend
-
-```
-### Environment Varibles
-```bash
-NEXT_PUBLIC_API_BASE_URL=your_backend_url
-```
-
-##  Run Frontend
-
-```bash
-bun dev
-```
-
-
-Author
-Sopan Munde
-E-mail: sopanmunde5@gmail.com
-Portfolio: https://my-portfolio-liard-xi-19.vercel.app/
+Trishul-AI is a prototype designed to demonstrate Retrieval-Augmented Generation capabilities in the healthcare space. Responses are provided for information retrieval purposes only and **do not constitute professional medical advice, diagnosis, or treatment**. Always seek the advice of your physician or qualified health provider with any questions you may have regarding medical conditions.
