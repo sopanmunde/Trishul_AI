@@ -69,9 +69,9 @@ const Composer = forwardRef(function Composer({ onSend, busy }, ref) {
           "mx-auto max-w-3xl overflow-hidden rounded-2xl border bg-white transition-all duration-200 dark:bg-zinc-900",
           isFocused
             ? [
-                "border-zinc-400 dark:border-zinc-600",
-                "shadow-[0_0_0_3px_rgba(161,161,170,0.18)] dark:shadow-[0_0_0_3px_rgba(113,113,122,0.25)]",
-              ].join(" ")
+              "border-zinc-400 dark:border-zinc-600",
+              "shadow-[0_0_0_3px_rgba(161,161,170,0.18)] dark:shadow-[0_0_0_3px_rgba(113,113,122,0.25)]",
+            ].join(" ")
             : "border-zinc-200 shadow-sm dark:border-zinc-800",
         )}
       >
@@ -143,11 +143,6 @@ const Composer = forwardRef(function Composer({ onSend, busy }, ref) {
           </div>
         </div>
       </div>
-
-      {/* Footer hint */}
-      <p className="mx-auto mt-2 max-w-3xl text-center text-[11px] text-zinc-400/70 dark:text-zinc-600">
-        Trishul AI can make mistakes. Verify important information.
-      </p>
     </div>
   )
 })
